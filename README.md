@@ -2,7 +2,7 @@
 
 A [higher-order component](https://reactjs.org/docs/higher-order-components.html) for connecting [Observables](https://github.com/ReactiveX/rxjs) to React components.
 
-### Example
+## Example
 
 (Taken from [WatermelonDB](https://github.com/Nozbe/WatermelonDB/))
 
@@ -27,3 +27,15 @@ const EnhancedPost = enhance(Post)
 ```
 
 Learn more: https://github.com/Nozbe/WatermelonDB/blob/master/docs/Components.md
+
+## Installation
+
+```bash
+yarn add @nozbe/with-observables
+```
+
+And then to use:
+
+```js
+import withObservables from '@nozbe/with-observables'
+```
