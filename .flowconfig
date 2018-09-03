@@ -1,0 +1,17 @@
+[ignore]
+<PROJECT_ROOT>/.cache
+<PROJECT_ROOT>/__tests__
+
+[include]
+
+[libs]
+
+[options]
+esproposal.optional_chaining=enable
+; strip_root=true
+emoji=true
+module.ignore_non_literal_requires=true
+module.file_ext=.js
+
+[version]
+^0.79.1

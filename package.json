@@ -1,0 +1,78 @@
+{
+  "name": "@nozbe/with-observables",
+  "version": "0.0.0",
+  "main": "dist/with-observables.cjs.js",
+  "module": "dist/with-observables.esm.js",
+  "scripts": {
+    "build": "rollup -c",
+    "flow": "flow check",
+    "eslint": "eslint ./src -c ./.eslintrc.yml --cache --cache-location ./.cache/.eslintcache",
+    "test": "jest --config=./jest.config.js --forceExit --detectOpenHandles --no-cache"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "@Nozbe",
+  "homepage": "https://github.com/Nozbe/withObservables#readme",
+  "bugs": "https://github.com/Nozbe/withObservables/issues",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "react-native",
+    "hoc",
+    "reactive",
+    "rxjs",
+    "watermelondb"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nozbe/withObservables.git"
+  },
+  "dependencies": {
+    "rxjs": "^6.2.2"
+  },
+  "peerDependencies": {
+    "react": "^0.16.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.56",
+    "@babel/core": "^7.0.0-beta.56",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.56",
+    "@babel/plugin-proposal-json-strings": "^7.0.0-beta.56",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.56",
+    "@babel/plugin-transform-arrow-functions": "^7.0.0-beta.56",
+    "@babel/plugin-transform-block-scoping": "^7.0.0-beta.56",
+    "@babel/plugin-transform-classes": "^7.0.0-beta.56",
+    "@babel/plugin-transform-destructuring": "^7.0.0-beta.56",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.56",
+    "@babel/plugin-transform-function-name": "^7.0.0-beta.56",
+    "@babel/plugin-transform-literals": "^7.0.0-beta.56",
+    "@babel/plugin-transform-modules-commonjs": "^7.0.0-beta.56",
+    "@babel/plugin-transform-spread": "^7.0.0-beta.56",
+    "@babel/plugin-transform-template-literals": "^7.0.0-beta.56",
+    "@babel/runtime": "^7.0.0-beta.56",
+    "babel-core": "^7.0.0-0",
+    "babel-eslint": "8.2.6",
+    "babel-jest": "^23.4.2",
+    "eslint": "^5.3.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^3.0.1",
+    "eslint-plugin-flowtype": "^2.50.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.11.0",
+    "fast-async": "^6.3.7",
+    "flow-bin": "^0.79.1",
+    "jest": "^23.5.0",
+    "rollup": "^0.64.1",
+    "rollup-plugin-babel": "^4.0.0-beta.8",
+    "rollup-plugin-commonjs": "^9.1.5",
+    "rollup-plugin-flow": "^1.1.1",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-replace": "^2.0.0",
+    "rollup-plugin-terser": "^1.0.1"
+  }
+}
