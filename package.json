@@ -32,7 +32,7 @@
     "rxjs": "^6.2.2"
   },
   "peerDependencies": {
-    "react": "^0.16.4"
+    "react": "^16.4.2"
   },
   "publishConfig": {
     "access": "public"
