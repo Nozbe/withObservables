@@ -26,7 +26,7 @@ const enhance = withObservables(['post'], ({ post }) => ({
 const EnhancedPost = enhance(Post)
 ```
 
-Learn more: https://github.com/Nozbe/WatermelonDB/blob/master/docs/Components.md
+**➡️ Learn more:** [Connecting WatermelonDB to Components](https://github.com/Nozbe/WatermelonDB/blob/master/docs/Components.md)
 
 ## Installation
 
@@ -39,3 +39,32 @@ And then to use:
 ```js
 import withObservables from '@nozbe/with-observables'
 ```
+
+## Usage
+
+```
+withObservablesSynchronized(triggerProps, getObservables)
+
+// Injects new props to a component with values from the passed Observables
+//
+// Every time one of the `triggerProps` changes, `getObservables()` is called
+// and the returned Observables are subscribed to.
+//
+// Every time one of the Observables emits a new value, the matching inner prop is updated.
+//
+// You can return multiple Observables in the function. You can also return arbitrary objects that have
+// an `observe()` function that returns an Observable.
+//
+// The inner component will not render until all supplied Observables return their first values.
+// If `triggerProps` change, renders will also be paused until the new Observables emit first values.
+//
+// If you only want to subscribe to Observables once (the Observables don't depend on outer props),
+// pass `null` to `triggerProps`.
+//
+// Example use:
+//   withObservablesSynchronized(['task'], ({ task }) => ({
+//     task: task,
+//     comments: task.comments.observe()
+//   }))
+```
+
