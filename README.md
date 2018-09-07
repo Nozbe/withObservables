@@ -1,6 +1,6 @@
 # `withObservables`
 
-A [higher-order component](https://reactjs.org/docs/higher-order-components.html) for connecting [Observables](https://github.com/ReactiveX/rxjs) to React components.
+A [higher-order component](https://reactjs.org/docs/higher-order-components.html) for connecting RxJS [Observables](https://github.com/ReactiveX/rxjs) to React components.
 
 ## Example
 
