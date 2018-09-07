@@ -42,7 +42,7 @@ import withObservables from '@nozbe/with-observables'
 
 ## Usage
 
-```
+```js
 withObservablesSynchronized(triggerProps, getObservables)
 
 // Injects new props to a component with values from the passed Observables
@@ -68,3 +68,8 @@ withObservablesSynchronized(triggerProps, getObservables)
 //   }))
 ```
 
+## Author and license
+
+**withObservables** was created by [@Nozbe](https://github.com/Nozbe) for [WatermelonDB](https://github.com/Nozbe/WatermelonDB).
+
+withObservables is available under the MIT license. See the [LICENSE](./LICENSE) file for more info.
