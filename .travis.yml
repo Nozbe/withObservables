@@ -1,0 +1,25 @@
+matrix:
+  include:
+    - language: objective-c
+      osx_image: xcode9.4
+      cache:
+        timeout: 600
+        directories:
+          - $HOME/.cache/yarn
+          - node_modules
+
+      env:
+        global:
+        - LC_CTYPE=en_US.UTF-8
+        - LANG=en_US.UTF-8
+
+      before_install:
+        - nvm install 9
+        - npm install -g yarn
+        - yarn -version
+
+      install:
+        - yarn
+
+      script:
+        - yarn ci:check
