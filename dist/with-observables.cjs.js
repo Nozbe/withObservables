@@ -2,7 +2,7 @@
 
 var from = require('rxjs/observable/from');
 var combineLatest = require('rxjs/observable/combineLatest');
-var operators = require('rxjs/operators');
+var map = require('rxjs/operators/map');
 var react = require('react');
 
 function _classCallCheck(instance, Constructor) {
@@ -149,7 +149,7 @@ function combineLatestObject
   if (keys.length === 1) {
     var _key = keys[0]; // $FlowFixMe
 
-    return from.from(observables[0]).pipe(operators.map(function (value) {
+    return from.from(observables[0]).pipe(map.map(function (value) {
       return {
         [_key]: value
       };
