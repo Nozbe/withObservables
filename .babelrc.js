@@ -1,5 +1,5 @@
 const plugins = [
-  '@babel/plugin-transform-flow-strip-types',
+  '@babel/plugin-transform-flow-comments',
   ['@babel/plugin-proposal-class-properties', { loose: true }],
   '@babel/plugin-proposal-json-strings',
   '@babel/plugin-proposal-object-rest-spread',
@@ -11,12 +11,6 @@ const plugins = [
   '@babel/plugin-transform-classes',
   '@babel/plugin-transform-destructuring',
   '@babel/plugin-transform-spread',
-  [
-    'module:fast-async',
-    {
-      spec: true,
-    },
-  ],
 ]
 
 module.exports = {

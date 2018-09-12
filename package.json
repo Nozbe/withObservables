@@ -30,7 +30,7 @@
     "url": "https://github.com/Nozbe/withObservables.git"
   },
   "dependencies": {
-    "rxjs": "^6.2.2"
+    "rxjs": "^6.3.2"
   },
   "peerDependencies": {
     "react": "^16.4.2"
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.56",
-    "@babel/core": "^7.0.0-beta.56",
+    "@babel/core": "^7.0.1",
     "@babel/plugin-proposal-class-properties": "^7.0.0-beta.56",
     "@babel/plugin-proposal-json-strings": "^7.0.0-beta.56",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.56",
@@ -48,7 +48,7 @@
     "@babel/plugin-transform-block-scoping": "^7.0.0-beta.56",
     "@babel/plugin-transform-classes": "^7.0.0-beta.56",
     "@babel/plugin-transform-destructuring": "^7.0.0-beta.56",
-    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.56",
+    "@babel/plugin-transform-flow-comments": "^7.0.0",
     "@babel/plugin-transform-function-name": "^7.0.0-beta.56",
     "@babel/plugin-transform-literals": "^7.0.0-beta.56",
     "@babel/plugin-transform-modules-commonjs": "^7.0.0-beta.56",
@@ -57,7 +57,7 @@
     "@babel/runtime": "^7.0.0-beta.56",
     "babel-core": "^7.0.0-0",
     "babel-eslint": "8.2.6",
-    "babel-jest": "^23.4.2",
+    "babel-jest": "^23.6.0",
     "concurrently": "^4.0.1",
     "eslint": "^5.3.0",
     "eslint-config-airbnb": "^17.1.0",
@@ -66,16 +66,14 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
-    "fast-async": "^6.3.7",
     "flow-bin": "^0.79.1",
-    "jest": "^23.5.0",
-    "rollup": "^0.64.1",
+    "jest": "^23.6.0",
+    "rollup": "^0.65.2",
     "rollup-cli": "^1.0.9",
-    "rollup-plugin-babel": "^4.0.0-beta.8",
+    "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.1.5",
     "rollup-plugin-flow": "^1.1.1",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-replace": "^2.0.0",
-    "rollup-plugin-terser": "^1.0.1"
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-replace": "^2.0.0"
   }
 }
