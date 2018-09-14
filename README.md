@@ -1,5 +1,7 @@
 # `withObservables`
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Nozbe/withObservables.svg)](https://greenkeeper.io/)
+
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
   </a>
