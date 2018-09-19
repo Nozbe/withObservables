@@ -11,12 +11,6 @@ const plugins = [
   '@babel/plugin-transform-classes',
   '@babel/plugin-transform-destructuring',
   '@babel/plugin-transform-spread',
-  [
-    'module:fast-async',
-    {
-      spec: true,
-    },
-  ],
 ]
 
 module.exports = {

@@ -10,10 +10,15 @@ import mapObject from './mapObject'
 
 type UnaryFn<A, R> = (a: A) => R
 type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>
-type ExtractModelTypes = <T>(value: ?Observable<T> | ?T) => T
+
+type ObservableConvertible<T> = { +observe: () => Observable<T> }
+
+type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertible<T>) => T
+
 type TriggerProps<A> = $Keys<A>[] | null
 type GetObservables<A, B> = (props: A) => B
-type WithObservablesSynchronized<Props, ObservableProps> = HOC<{ ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractModelTypes> },
+
+type WithObservablesSynchronized<Props, ObservableProps> = HOC<{ ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
   Props,>
 
 const toObservable = (value: any): Observable<any> =>
