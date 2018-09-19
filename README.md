@@ -55,7 +55,7 @@ import withObservables from '@nozbe/with-observables'
 ## Usage
 
 ```js
-withObservablesSynchronized(triggerProps, getObservables)
+withObservables(triggerProps, getObservables)
 
 // Injects new props to a component with values from the passed Observables
 //
@@ -74,7 +74,7 @@ withObservablesSynchronized(triggerProps, getObservables)
 // pass `null` to `triggerProps`.
 //
 // Example use:
-//   withObservablesSynchronized(['task'], ({ task }) => ({
+//   withObservables(['task'], ({ task }) => ({
 //     task: task,
 //     comments: task.comments.observe()
 //   }))
