@@ -180,13 +180,15 @@ var mapObject = function mapObject(fn, obj) {
 
 /*:: type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>*/
 
-/*:: type ExtractModelTypes = <T>(value: ?Observable<T> | ?T) => T*/
+/*:: type ObservableConvertible<T> = { +observe: () => Observable<T> }*/
+
+/*:: type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertible<T>) => T*/
 
 /*:: type TriggerProps<A> = $Keys<A>[] | null*/
 
 /*:: type GetObservables<A, B> = (props: A) => B*/
 
-/*:: type WithObservablesSynchronized<Props, ObservableProps> = HOC<{ ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractModelTypes> },
+/*:: type WithObservablesSynchronized<Props, ObservableProps> = HOC<{ ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
   Props,>*/
 
 var toObservable = function toObservable(value
