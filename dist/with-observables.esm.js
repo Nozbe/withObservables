@@ -125,22 +125,9 @@ var zipObj = function zipObj(keys, values) {
   return result;
 };
 
-/*:: import type { Observable } from 'rxjs/Observable'*/
-/*:: type ExtractObservableType = <T>(?Observable<T>) => T*/
-
 // Transforms an object of Observables into an Observable of an object
 // i.e. { a: Observable<number>, b: Observable<string> } -> Observable<{ a: number, b: string }>
-function combineLatestObject
-/*:: <
-  ObjectOfObservables: {
-    [key: string]: Observable<*>,
-  },
->*/
-(object
-/*: ObjectOfObservables*/
-)
-/*: Observable<$ObjMap<ObjectOfObservables, ExtractObservableType>>*/
-{
+function combineLatestObject(object) {
   var keys = Object.keys(object);
   var observables = Object.values(object); // Optimization: If subscribing just one observable, skip combineLatest
 
@@ -173,49 +160,17 @@ var mapObject = function mapObject(fn, obj) {
   return willReturn;
 };
 
-/*:: import type { Observable, Subscription } from 'rxjs'*/
-/*:: type UnaryFn<A, R> = (a: A) => R*/
-
-/*:: type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>*/
-
-/*:: type ObservableConvertible<T> = { +observe: () => Observable<T> }*/
-
-/*:: type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertible<T>) => T*/
-
-/*:: type TriggerProps<A> = $Keys<A>[] | null*/
-
-/*:: type GetObservables<A, B> = (props: A) => B*/
-
-/*:: type WithObservablesSynchronized<Props, ObservableProps> = HOC<{ ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
-  Props,>*/
-
-var toObservable = function toObservable(value
-/*: any*/
-) {
-  return (
-    /*: Observable<any>*/
-    typeof value.observe === 'function' ? value.observe() : value
-  );
+var toObservable = function toObservable(value) {
+  return typeof value.observe === 'function' ? value.observe() : value;
 };
 
-var identicalArrays = function identicalArrays(arrayA
-/*: V*/
-, arrayB
-/*: V*/
-) {
-  return (
-    /*: boolean*/
-    arrayA.length === arrayB.length && arrayA.every(function (el, index) {
-      return el === arrayB[index];
-    })
-  );
+var identicalArrays = function identicalArrays(arrayA, arrayB) {
+  return arrayA.length === arrayB.length && arrayA.every(function (el, index) {
+    return el === arrayB[index];
+  });
 };
 
-var makeGetNewProps
-/*: <A: {}, B: {}>(
-  GetObservables<A, B>,
-) => A => Observable<*>*/
-= function makeGetNewProps(getObservables) {
+var makeGetNewProps = function makeGetNewProps(getObservables) {
   return function (props) {
     // $FlowFixMe
     var rawObservables = getObservables(props);
@@ -224,15 +179,7 @@ var makeGetNewProps
   };
 };
 
-function getTriggeringProps
-/*:: <PropsInput: {}>*/
-(props
-/*: PropsInput*/
-, propNames
-/*: TriggerProps<PropsInput>*/
-)
-/*: any[]*/
-{
+function getTriggeringProps(props, propNames) {
   if (!propNames) {
     return [];
   }
@@ -265,22 +212,8 @@ var prefetchTimeout = 2000; // ms
 //     comments: task.comments.observe()
 //   }))
 
-var withObservablesSynchronized = function withObservablesSynchronized(triggerProps
-/*: TriggerProps<PropsInput>*/
-, getObservables
-/*: GetObservables<PropsInput, ObservableProps>*/
-)
-/*: WithObservablesSynchronized<PropsInput, ObservableProps>*/
-{
+var withObservablesSynchronized = function withObservablesSynchronized(triggerProps, getObservables) {
   var getNewProps = makeGetNewProps(getObservables);
-  /*:: type AddedValues = Object*/
-
-  /*:: type State = {
-      isFetching: boolean,
-      values: AddedValues,
-      triggeredFromProps: any[],
-    }*/
-
   return function (BaseComponent) {
     return (
       /*#__PURE__*/
@@ -289,9 +222,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
       function (_Component) {
         _inherits(WithObservablesComponent, _Component);
 
-        function WithObservablesComponent(props)
-        /*: void*/
-        {
+        function WithObservablesComponent(props) {
           var _this;
 
           _classCallCheck(this, WithObservablesComponent);
@@ -329,9 +260,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
 
         _createClass(WithObservablesComponent, [{
           key: "componentDidMount",
-          value: function componentDidMount()
-          /*: void*/
-          {
+          value: function componentDidMount() {
             this._isMounted = true;
             this.cancelPrefetchTimeout();
 
@@ -344,11 +273,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
 
         }, {
           key: "UNSAFE_componentWillReceiveProps",
-          value: function UNSAFE_componentWillReceiveProps(nextProps
-          /*: PropsInput*/
-          )
-          /*: void*/
-          {
+          value: function UNSAFE_componentWillReceiveProps(nextProps) {
             var triggeredFromProps = this.state.triggeredFromProps;
             var newTriggeringProps = getTriggeringProps(nextProps, triggerProps);
 
@@ -358,13 +283,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
           }
         }, {
           key: "subscribe",
-          value: function subscribe(props
-          /*: PropsInput*/
-          , triggeredFromProps
-          /*: any[]*/
-          )
-          /*: void*/
-          {
+          value: function subscribe(props, triggeredFromProps) {
             this.setState({
               isFetching: true,
               values: {},
@@ -374,11 +293,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
           }
         }, {
           key: "subscribeWithoutSettingState",
-          value: function subscribeWithoutSettingState(props
-          /*: PropsInput*/
-          )
-          /*: void*/
-          {
+          value: function subscribeWithoutSettingState(props) {
             var _this2 = this;
 
             this.unsubscribe();
@@ -402,41 +317,31 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
           }
         }, {
           key: "unsubscribe",
-          value: function unsubscribe()
-          /*: void*/
-          {
+          value: function unsubscribe() {
             this._subscription && this._subscription.unsubscribe();
             this.cancelPrefetchTimeout();
           }
         }, {
           key: "cancelPrefetchTimeout",
-          value: function cancelPrefetchTimeout()
-          /*: void*/
-          {
+          value: function cancelPrefetchTimeout() {
             this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
             this._prefetchTimeout = null;
           }
         }, {
           key: "shouldComponentUpdate",
-          value: function shouldComponentUpdate(nextProps, nextState)
-          /*: boolean*/
-          {
+          value: function shouldComponentUpdate(nextProps, nextState) {
             // If one of the triggering props change but we don't yet have first values from the new
             // observable, *don't* render anything!
             return !nextState.isFetching;
           }
         }, {
           key: "componentWillUnmount",
-          value: function componentWillUnmount()
-          /*: void*/
-          {
+          value: function componentWillUnmount() {
             this.unsubscribe();
           }
         }, {
           key: "render",
-          value: function render()
-          /*: ?React$Node*/
-          {
+          value: function render() {
             var _this$state = this.state,
                 isFetching = _this$state.isFetching,
                 values = _this$state.values;
