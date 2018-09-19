@@ -1,6 +1,6 @@
 {
   "name": "@nozbe/with-observables",
-  "version": "1.0.0",
+  "version": "1.0.1-1",
   "main": "dist/with-observables.cjs.js",
   "module": "dist/with-observables.esm.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "ci:check": "concurrently 'yarn test' 'yarn eslint' 'yarn flow' --kill-others-on-fail"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "author": "@Nozbe",
   "homepage": "https://github.com/Nozbe/withObservables#readme",
