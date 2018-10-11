@@ -53,7 +53,7 @@
     "@babel/plugin-transform-function-name": "^7.1.0",
     "@babel/plugin-transform-literals": "^7.0.0",
     "@babel/plugin-transform-modules-commonjs": "^7.1.0",
-    "@babel/plugin-transform-spread": "^7.0.0-beta.56",
+    "@babel/plugin-transform-spread": "^7.0.0",
     "@babel/plugin-transform-template-literals": "^7.0.0-beta.56",
     "@babel/runtime": "^7.0.0-beta.56",
     "babel-core": "^7.0.0-0",
