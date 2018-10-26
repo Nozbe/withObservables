@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.0.2 - 2018-10-26
+
 - [Flow] Fixed types for Flow 0.84.0
 
 ## 1.0.1 - 2018-09-19
