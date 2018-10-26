@@ -312,7 +312,8 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
               }
             }, function (error) {
               // we need to explicitly log errors from the new observables, or they will get lost
-              console.error(error);
+              // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
+              console.error("Error in Rx composition in withObservables()", error);
             });
           }
         }, {
