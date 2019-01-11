@@ -67,7 +67,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
-    "flow-bin": "^0.89.0",
+    "flow-bin": "^0.90.0",
     "jest": "^23.5.0",
     "rollup": "^0.68.0",
     "rollup-cli": "^1.0.9",
