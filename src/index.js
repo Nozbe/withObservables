@@ -4,6 +4,7 @@
 
 import type { Observable, Subscription } from 'rxjs'
 import { Component, createElement } from 'react'
+import hoistNonReactStatic from 'hoist-non-react-statics'
 
 import combineLatestObject from './combineLatestObject'
 import mapObject from './mapObject'
@@ -84,7 +85,7 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
     triggeredFromProps: any[],
   }
 
-  return BaseComponent =>
+  return BaseComponent => {
     // TODO: This is probably not going to be 100% safe to use under React async mode
     // Do more research
     class WithObservablesComponent extends Component<*, State> {
@@ -207,6 +208,9 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
         return isFetching ? null : createElement(BaseComponent, { ...this.props, ...values })
       }
     }
+
+    return hoistNonReactStatic(WithObservablesComponent, BaseComponent)
+  }
 }
 
 export default withObservablesSynchronized
