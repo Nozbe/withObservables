@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.0.3 - 2019-03-14
+
 - Add hoist-non-react-statics
 
 ## 1.0.2 - 2018-10-26
