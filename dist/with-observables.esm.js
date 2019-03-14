@@ -1,7 +1,8 @@
+import { createElement, Component } from 'react';
+import hoistNonReactStatic from 'hoist-non-react-statics';
 import { from } from 'rxjs/observable/from';
 import { combineLatest } from 'rxjs/observable/combineLatest';
 import { map } from 'rxjs/operators/map';
-import { Component, createElement } from 'react';
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -215,144 +216,145 @@ var prefetchTimeout = 2000; // ms
 var withObservablesSynchronized = function withObservablesSynchronized(triggerProps, getObservables) {
   var getNewProps = makeGetNewProps(getObservables);
   return function (BaseComponent) {
-    return (
-      /*#__PURE__*/
-      // TODO: This is probably not going to be 100% safe to use under React async mode
-      // Do more research
-      function (_Component) {
-        _inherits(WithObservablesComponent, _Component);
+    // TODO: This is probably not going to be 100% safe to use under React async mode
+    // Do more research
+    var WithObservablesComponent =
+    /*#__PURE__*/
+    function (_Component) {
+      _inherits(WithObservablesComponent, _Component);
 
-        function WithObservablesComponent(props) {
-          var _this;
+      function WithObservablesComponent(props) {
+        var _this;
 
-          _classCallCheck(this, WithObservablesComponent);
+        _classCallCheck(this, WithObservablesComponent);
 
-          _this = _possibleConstructorReturn(this, _getPrototypeOf(WithObservablesComponent).call(this, props));
-          _this._subscription = null;
-          _this._isMounted = false;
-          _this._prefetchTimeout = null;
-          _this._exitedConstructor = false;
-          _this.state = {
+        _this = _possibleConstructorReturn(this, _getPrototypeOf(WithObservablesComponent).call(this, props));
+        _this._subscription = null;
+        _this._isMounted = false;
+        _this._prefetchTimeout = null;
+        _this._exitedConstructor = false;
+        _this.state = {
+          isFetching: true,
+          values: {},
+          triggeredFromProps: getTriggeringProps(props, triggerProps) // The recommended React practice is to subscribe to async sources on `didMount`
+          // Unfortunately, that's slow, because we have an unnecessary empty render even if we
+          // can get first values before render.
+          //
+          // So we're subscribing in constructor, but that's dangerous. We have no guarantee that
+          // the component will actually be mounted (and therefore that `willUnmount` will be called
+          // to safely unsubscribe). So we're setting a safety timeout to avoid leaking memory.
+          // If component is not mounted before timeout, we'll unsubscribe just to be sure.
+          // (If component is mounted after all, just super slow, we'll subscribe again on didMount)
+
+        };
+
+        _this.subscribeWithoutSettingState(_this.props);
+
+        _this._prefetchTimeout = setTimeout(function () {
+          console.warn("withObservables - unsubscribing from source. Leaky component!");
+
+          _this.unsubscribe();
+        }, prefetchTimeout);
+        _this._exitedConstructor = true;
+        return _this;
+      }
+
+      _createClass(WithObservablesComponent, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+          this._isMounted = true;
+          this.cancelPrefetchTimeout();
+
+          if (!this._subscription) {
+            console.warn("withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing");
+            var newTriggeringProps = getTriggeringProps(this.props, triggerProps);
+            this.subscribe(this.props, newTriggeringProps);
+          }
+        } // eslint-disable-next-line
+
+      }, {
+        key: "UNSAFE_componentWillReceiveProps",
+        value: function UNSAFE_componentWillReceiveProps(nextProps) {
+          var triggeredFromProps = this.state.triggeredFromProps;
+          var newTriggeringProps = getTriggeringProps(nextProps, triggerProps);
+
+          if (!identicalArrays(triggeredFromProps, newTriggeringProps)) {
+            this.subscribe(nextProps, newTriggeringProps);
+          }
+        }
+      }, {
+        key: "subscribe",
+        value: function subscribe(props, triggeredFromProps) {
+          this.setState({
             isFetching: true,
             values: {},
-            triggeredFromProps: getTriggeringProps(props, triggerProps) // The recommended React practice is to subscribe to async sources on `didMount`
-            // Unfortunately, that's slow, because we have an unnecessary empty render even if we
-            // can get first values before render.
-            //
-            // So we're subscribing in constructor, but that's dangerous. We have no guarantee that
-            // the component will actually be mounted (and therefore that `willUnmount` will be called
-            // to safely unsubscribe). So we're setting a safety timeout to avoid leaking memory.
-            // If component is not mounted before timeout, we'll unsubscribe just to be sure.
-            // (If component is mounted after all, just super slow, we'll subscribe again on didMount)
-
-          };
-
-          _this.subscribeWithoutSettingState(_this.props);
-
-          _this._prefetchTimeout = setTimeout(function () {
-            console.warn("withObservables - unsubscribing from source. Leaky component!");
-
-            _this.unsubscribe();
-          }, prefetchTimeout);
-          _this._exitedConstructor = true;
-          return _this;
+            triggeredFromProps
+          });
+          this.subscribeWithoutSettingState(props);
         }
+      }, {
+        key: "subscribeWithoutSettingState",
+        value: function subscribeWithoutSettingState(props) {
+          var _this2 = this;
 
-        _createClass(WithObservablesComponent, [{
-          key: "componentDidMount",
-          value: function componentDidMount() {
-            this._isMounted = true;
-            this.cancelPrefetchTimeout();
-
-            if (!this._subscription) {
-              console.warn("withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing");
-              var newTriggeringProps = getTriggeringProps(this.props, triggerProps);
-              this.subscribe(this.props, newTriggeringProps);
+          this.unsubscribe();
+          this._subscription = getNewProps(props).subscribe(function (values) {
+            if (_this2._exitedConstructor) {
+              _this2.setState({
+                values,
+                isFetching: false
+              });
+            } else {
+              // Source has called with first values synchronously while we're still in the
+              // constructor. Here, `this.setState` does not work and we must mutate this.state
+              // directly
+              _this2.state.values = values;
+              _this2.state.isFetching = false;
             }
-          } // eslint-disable-next-line
+          }, function (error) {
+            // we need to explicitly log errors from the new observables, or they will get lost
+            // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
+            console.error("Error in Rx composition in withObservables()", error);
+          });
+        }
+      }, {
+        key: "unsubscribe",
+        value: function unsubscribe() {
+          this._subscription && this._subscription.unsubscribe();
+          this.cancelPrefetchTimeout();
+        }
+      }, {
+        key: "cancelPrefetchTimeout",
+        value: function cancelPrefetchTimeout() {
+          this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
+          this._prefetchTimeout = null;
+        }
+      }, {
+        key: "shouldComponentUpdate",
+        value: function shouldComponentUpdate(nextProps, nextState) {
+          // If one of the triggering props change but we don't yet have first values from the new
+          // observable, *don't* render anything!
+          return !nextState.isFetching;
+        }
+      }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+          this.unsubscribe();
+        }
+      }, {
+        key: "render",
+        value: function render() {
+          var _this$state = this.state,
+              isFetching = _this$state.isFetching,
+              values = _this$state.values;
+          return isFetching ? null : createElement(BaseComponent, _objectSpread({}, this.props, values));
+        }
+      }]);
 
-        }, {
-          key: "UNSAFE_componentWillReceiveProps",
-          value: function UNSAFE_componentWillReceiveProps(nextProps) {
-            var triggeredFromProps = this.state.triggeredFromProps;
-            var newTriggeringProps = getTriggeringProps(nextProps, triggerProps);
+      return WithObservablesComponent;
+    }(Component);
 
-            if (!identicalArrays(triggeredFromProps, newTriggeringProps)) {
-              this.subscribe(nextProps, newTriggeringProps);
-            }
-          }
-        }, {
-          key: "subscribe",
-          value: function subscribe(props, triggeredFromProps) {
-            this.setState({
-              isFetching: true,
-              values: {},
-              triggeredFromProps
-            });
-            this.subscribeWithoutSettingState(props);
-          }
-        }, {
-          key: "subscribeWithoutSettingState",
-          value: function subscribeWithoutSettingState(props) {
-            var _this2 = this;
-
-            this.unsubscribe();
-            this._subscription = getNewProps(props).subscribe(function (values) {
-              if (_this2._exitedConstructor) {
-                _this2.setState({
-                  values,
-                  isFetching: false
-                });
-              } else {
-                // Source has called with first values synchronously while we're still in the
-                // constructor. Here, `this.setState` does not work and we must mutate this.state
-                // directly
-                _this2.state.values = values;
-                _this2.state.isFetching = false;
-              }
-            }, function (error) {
-              // we need to explicitly log errors from the new observables, or they will get lost
-              // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
-              console.error("Error in Rx composition in withObservables()", error);
-            });
-          }
-        }, {
-          key: "unsubscribe",
-          value: function unsubscribe() {
-            this._subscription && this._subscription.unsubscribe();
-            this.cancelPrefetchTimeout();
-          }
-        }, {
-          key: "cancelPrefetchTimeout",
-          value: function cancelPrefetchTimeout() {
-            this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
-            this._prefetchTimeout = null;
-          }
-        }, {
-          key: "shouldComponentUpdate",
-          value: function shouldComponentUpdate(nextProps, nextState) {
-            // If one of the triggering props change but we don't yet have first values from the new
-            // observable, *don't* render anything!
-            return !nextState.isFetching;
-          }
-        }, {
-          key: "componentWillUnmount",
-          value: function componentWillUnmount() {
-            this.unsubscribe();
-          }
-        }, {
-          key: "render",
-          value: function render() {
-            var _this$state = this.state,
-                isFetching = _this$state.isFetching,
-                values = _this$state.values;
-            return isFetching ? null : createElement(BaseComponent, _objectSpread({}, this.props, values));
-          }
-        }]);
-
-        return WithObservablesComponent;
-      }(Component)
-    );
+    return hoistNonReactStatic(WithObservablesComponent, BaseComponent);
   };
 };
 
