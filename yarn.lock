@@ -1477,10 +1477,10 @@ eslint-config-airbnb@^17.1.0:
     object.assign "^4.1.0"
     object.entries "^1.0.4"
 
-eslint-config-prettier@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-4.1.0.tgz#181364895899fff9fd3605fecb5c4f20e7d5f395"
-  integrity sha512-zILwX9/Ocz4SV2vX7ox85AsrAgXV3f2o2gpIicdMIOra48WYqgUnWNH/cR/iHtmD2Vb3dLSC3LiEJnS05Gkw7w==
+eslint-config-prettier@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-5.0.0.tgz#f7a94b2b8ae7cbf25842c36fa96c6d32cd0a697c"
+  integrity sha512-c17Aqiz5e8LEqoc/QPmYnaxQFAHTx2KlCZBPxXXjEMmNchOLnV/7j0HoPZuC+rL/tDC9bazUYOKJW9bOhftI/w==
   dependencies:
     get-stdin "^6.0.0"
 
@@ -1885,10 +1885,10 @@ flatted@^2.0.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-2.0.0.tgz#55122b6536ea496b4b44893ee2608141d10d9916"
   integrity sha512-R+H8IZclI8AAkSBRQJLVOsxwAoHd6WC40b4QTNWIjzAa6BXOBfQcM587MXDTVPeYaopFNWHUFLx7eNmHDSxMWg==
 
-flow-bin@^0.98.0:
-  version "0.98.1"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.98.1.tgz#a8d781621c91703df69928acc83c9777e2fcbb49"
-  integrity sha512-y1YzQgbFUX4EG6h2EO8PhyJeS0VxNgER8XsTwU8IXw4KozfneSmGVgw8y3TwAOza7rVhTlHEoli1xNuNW1rhPw==
+flow-bin@^0.99.0:
+  version "0.99.1"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.99.1.tgz#0d4f413ca84a3a95d0aa64214178684dd7c6a4c5"
+  integrity sha512-dipNwJlb4MsVt3IuDgPTymCNL4GFoq3pG+GbY6DmBbl0dJPWFSA383rCTmgbfFhoeJ1XCfYBan0BPryToSxiiQ==
 
 flow-remove-types@^1.1.0:
   version "1.2.3"
