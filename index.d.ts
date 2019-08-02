@@ -1,5 +1,5 @@
 declare module "@nozbe/with-observables" {
-   import { ComponentProps, ComponentType } from "react";
+   import { ComponentType } from "react";
    import { Observable } from "rxjs/Observable";
 
    interface ObservableConvertible<T> {
