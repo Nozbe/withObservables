@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add Typescript bindings
+
 ## 1.0.3 - 2019-03-14
 
 - Add hoist-non-react-statics
