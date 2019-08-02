@@ -1,5 +1,5 @@
 declare module "@nozbe/with-observables" {
-   import { ComponentType } from "react";
+   import { ComponentProps, ComponentType } from "react";
    import { Observable } from "rxjs/Observable";
 
    interface ObservableConvertible<T> {
@@ -13,11 +13,11 @@ declare module "@nozbe/with-observables" {
    type ExtractedObservables<T> = {
      [K in keyof T]: ExtractObservableTypes<ValueOf<T>>
    }
+   type WrappedProps<Obs, Own> = Own & ExtractedObservables<Obs>;
 
    export default function withObservables<InputProps, ObservableProps>(
      triggerProps: Array<keyof InputProps>,
      getObservables: (props: InputProps) => ObservableProps
-   ): (Wrapped: ComponentType<ExtractedObservables<ObservableProps>>)
+   ): <OwnProps>(Wrapped: ComponentType<WrappedProps<ObservableProps, OwnProps>>)
      => ComponentType<InputProps>;
 }
-
