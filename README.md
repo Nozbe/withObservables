@@ -80,6 +80,28 @@ withObservables(triggerProps, getObservables)
 //   }))
 ```
 
+## Typescript
+
+The TypeScript bindings expose a helper type, `ObservablifyProps<Props, ObservableKeys, ObservableConvertibleKeys>` which can make it easier to wrap components without duplicating interfaces:
+```ts
+interface Props {
+  post: Post;
+  author: Author;
+  someOtherProp: boolean;
+  anotherProp: number;
+}
+
+const PostRenderer: React.FC<Props> = (props) => ( ... );
+
+type InputProps = ObservablifyProps<Props, "author", "post">
+const enhance = withObservables(["post", "author"], ({ post }: InputProps) => ({
+  post,
+  author: author.observe()
+});
+
+export default enhance(PostRenderer);
+```
+
 ## Author and license
 
 **withObservables** was created by [@Nozbe](https://github.com/Nozbe) for [WatermelonDB](https://github.com/Nozbe/WatermelonDB).
