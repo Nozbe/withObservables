@@ -1,23 +1,29 @@
 declare module "@nozbe/with-observables" {
-   import { ComponentType } from "react";
-   import { Observable } from "rxjs/Observable";
+  import { ComponentType } from "react";
+  import { Observable } from "rxjs/Observable";
 
-   interface ObservableConvertible<T> {
-     readonly observe: () => Observable<T>;
-   }
-   type ValueOf<T> = T[keyof T];
-   type ExtractObservableTypes<T> =
-     T extends Observable<infer U> ? U :
-     T extends ObservableConvertible<infer U> ? U :
-     T;
-   type ExtractedObservables<T> = {
-     [K in keyof T]: ExtractObservableTypes<ValueOf<T>>
-   }
-   type WrappedProps<Obs, Own> = Own & ExtractedObservables<Obs>;
+  interface ObservableConvertible<T> {
+    readonly observe: () => Observable<T>;
+  }
 
-   export default function withObservables<InputProps, ObservableProps>(
-     triggerProps: Array<keyof InputProps>,
-     getObservables: (props: InputProps) => ObservableProps
-   ): <OwnProps>(Wrapped: ComponentType<WrappedProps<ObservableProps, OwnProps>>)
-     => ComponentType<InputProps>;
+  type ExtractObservableType<T> =
+    T extends Observable<infer U> ? U :
+      T extends ObservableConvertible<infer U> ? U :
+        T;
+  type ExtractedObservables<T> = {
+    [K in keyof T]: ExtractObservableType<T[K]>
+  }
+
+  type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+  export type ObservableifyProps<T, O extends keyof T, C extends keyof T = never> = {
+    [K in keyof Pick<T, O>]: Observable<T[K]>;
+  } & {
+    [K in keyof Pick<T, C>]: ObservableConvertible<T[K]>
+  } & Omit<T, O | C>
+
+  export default function withObservables<InputProps, ObservableProps>(
+    triggerProps: Array<keyof InputProps>,
+    getObservables: (props: InputProps) => ObservableProps
+  ): <OwnProps>(Wrapped: ComponentType<ExtractedObservables<OwnProps>>)
+    => ComponentType<InputProps>;
 }
