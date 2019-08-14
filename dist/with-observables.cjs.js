@@ -4,9 +4,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var react = require('react');
 var hoistNonReactStatic = _interopDefault(require('hoist-non-react-statics'));
-var from = require('rxjs/observable/from');
-var combineLatest = require('rxjs/observable/combineLatest');
-var map = require('rxjs/operators/map');
+var rxjs = require('rxjs');
+var operators = require('rxjs/operators');
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -45,20 +44,35 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-function _objectSpread(target) {
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i] != null ? arguments[i] : {};
-    var ownKeys = Object.keys(source);
 
-    if (typeof Object.getOwnPropertySymbols === 'function') {
-      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-      }));
+    if (i % 2) {
+      ownKeys(source, true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(source).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
     }
-
-    ownKeys.forEach(function (key) {
-      _defineProperty(target, key, source[key]);
-    });
   }
 
   return target;
@@ -139,7 +153,7 @@ function combineLatestObject(object) {
   if (keys.length === 1) {
     var _key = keys[0]; // $FlowFixMe
 
-    return from.from(observables[0]).pipe(map.map(function (value) {
+    return rxjs.from(observables[0]).pipe(operators.map(function (value) {
       return {
         [_key]: value
       };
@@ -147,7 +161,7 @@ function combineLatestObject(object) {
   } // $FlowFixMe
 
 
-  return combineLatest.combineLatest(observables, function (...newValues) {
+  return rxjs.combineLatest(observables, function (...newValues) {
     return zipObj(keys, newValues);
   });
 }
@@ -351,7 +365,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
           var _this$state = this.state,
               isFetching = _this$state.isFetching,
               values = _this$state.values;
-          return isFetching ? null : react.createElement(BaseComponent, _objectSpread({}, this.props, values));
+          return isFetching ? null : react.createElement(BaseComponent, _objectSpread2({}, this.props, {}, values));
         }
       }]);
 
