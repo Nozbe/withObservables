@@ -1,9 +1,7 @@
 // @flow
 
-import type { Observable } from 'rxjs/Observable'
-import { from } from 'rxjs/observable/from'
-import { combineLatest } from 'rxjs/observable/combineLatest'
-import { map as map$ } from 'rxjs/operators/map'
+import { combineLatest, from, Observable } from "rxjs";
+import { map as map$} from "rxjs/operators";
 
 import zipObj from './zipObj'
 
