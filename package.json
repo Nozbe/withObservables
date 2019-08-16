@@ -62,7 +62,7 @@
     "babel-core": "^7.0.0-0",
     "babel-eslint": "10.0.2",
     "babel-jest": "^24.5.0",
-    "concurrently": "^4.1.0",
+    "concurrently": "^4.1.2",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^6.0.0",
