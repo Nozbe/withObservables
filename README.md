@@ -38,7 +38,7 @@ const enhance = withObservables(['post'], ({ post }) => ({
 const EnhancedPost = enhance(Post)
 ```
 
-**➡️ Learn more:** [Connecting WatermelonDB to Components](https://github.com/Nozbe/WatermelonDB/blob/master/docs/Components.md)
+**➡️ Learn more:** [Connecting WatermelonDB to Components](https://nozbe.github.io/WatermelonDB/Components.html)
 
 ## Installation
 
