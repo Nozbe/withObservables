@@ -8,7 +8,12 @@ const plugins = [
   '@babel/plugin-transform-function-name',
   '@babel/plugin-transform-arrow-functions',
   '@babel/plugin-transform-block-scoping',
-  '@babel/plugin-transform-classes',
+  [
+    '@babel/plugin-transform-classes',
+    {
+      loose: true, // spits out cleaner and faster output
+    },
+  ],
   '@babel/plugin-transform-destructuring',
   '@babel/plugin-transform-spread',
 ]

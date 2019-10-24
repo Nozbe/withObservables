@@ -8,28 +8,6 @@ var from = require('rxjs/observable/from');
 var combineLatest = require('rxjs/observable/combineLatest');
 var map = require('rxjs/operators/map');
 
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _defineProperties(target, props) {
-  for (var i = 0; i < props.length; i++) {
-    var descriptor = props[i];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    Object.defineProperty(target, descriptor.key, descriptor);
-  }
-}
-
-function _createClass(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties(Constructor, staticProps);
-  return Constructor;
-}
-
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -45,70 +23,44 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-function _objectSpread(target) {
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i] != null ? arguments[i] : {};
-    var ownKeys = Object.keys(source);
 
-    if (typeof Object.getOwnPropertySymbols === 'function') {
-      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-      }));
+    if (i % 2) {
+      ownKeys(source, true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(source).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
     }
-
-    ownKeys.forEach(function (key) {
-      _defineProperty(target, key, source[key]);
-    });
   }
 
   return target;
 }
 
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) _setPrototypeOf(subClass, superClass);
-}
-
-function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf(o);
-}
-
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-
-  return _setPrototypeOf(o, p);
-}
-
-function _assertThisInitialized(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return self;
-}
-
-function _possibleConstructorReturn(self, call) {
-  if (call && (typeof call === "object" || typeof call === "function")) {
-    return call;
-  }
-
-  return _assertThisInitialized(self);
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+  subClass.__proto__ = superClass;
 }
 
 // inspired by ramda and rambda
@@ -225,14 +177,12 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
     var WithObservablesComponent =
     /*#__PURE__*/
     function (_Component) {
-      _inherits(WithObservablesComponent, _Component);
+      _inheritsLoose(WithObservablesComponent, _Component);
 
       function WithObservablesComponent(props) {
         var _this;
 
-        _classCallCheck(this, WithObservablesComponent);
-
-        _this = _possibleConstructorReturn(this, _getPrototypeOf(WithObservablesComponent).call(this, props));
+        _this = _Component.call(this, props) || this;
         _this._subscription = null;
         _this._isMounted = false;
         _this._prefetchTimeout = null;
@@ -240,17 +190,16 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
         _this.state = {
           isFetching: true,
           values: {},
-          triggeredFromProps: getTriggeringProps(props, triggerProps) // The recommended React practice is to subscribe to async sources on `didMount`
-          // Unfortunately, that's slow, because we have an unnecessary empty render even if we
-          // can get first values before render.
-          //
-          // So we're subscribing in constructor, but that's dangerous. We have no guarantee that
-          // the component will actually be mounted (and therefore that `willUnmount` will be called
-          // to safely unsubscribe). So we're setting a safety timeout to avoid leaking memory.
-          // If component is not mounted before timeout, we'll unsubscribe just to be sure.
-          // (If component is mounted after all, just super slow, we'll subscribe again on didMount)
-
-        };
+          triggeredFromProps: getTriggeringProps(props, triggerProps)
+        }; // The recommended React practice is to subscribe to async sources on `didMount`
+        // Unfortunately, that's slow, because we have an unnecessary empty render even if we
+        // can get first values before render.
+        //
+        // So we're subscribing in constructor, but that's dangerous. We have no guarantee that
+        // the component will actually be mounted (and therefore that `willUnmount` will be called
+        // to safely unsubscribe). So we're setting a safety timeout to avoid leaking memory.
+        // If component is not mounted before timeout, we'll unsubscribe just to be sure.
+        // (If component is mounted after all, just super slow, we'll subscribe again on didMount)
 
         _this.subscribeWithoutSettingState(_this.props);
 
@@ -263,97 +212,88 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
         return _this;
       }
 
-      _createClass(WithObservablesComponent, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-          this._isMounted = true;
-          this.cancelPrefetchTimeout();
+      var _proto = WithObservablesComponent.prototype;
 
-          if (!this._subscription) {
-            console.warn("withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing");
-            var newTriggeringProps = getTriggeringProps(this.props, triggerProps);
-            this.subscribe(this.props, newTriggeringProps);
+      _proto.componentDidMount = function componentDidMount() {
+        this._isMounted = true;
+        this.cancelPrefetchTimeout();
+
+        if (!this._subscription) {
+          console.warn("withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing");
+          var newTriggeringProps = getTriggeringProps(this.props, triggerProps);
+          this.subscribe(this.props, newTriggeringProps);
+        }
+      } // eslint-disable-next-line
+      ;
+
+      _proto.UNSAFE_componentWillReceiveProps = function UNSAFE_componentWillReceiveProps(nextProps) {
+        var triggeredFromProps = this.state.triggeredFromProps;
+        var newTriggeringProps = getTriggeringProps(nextProps, triggerProps);
+
+        if (!identicalArrays(triggeredFromProps, newTriggeringProps)) {
+          this.subscribe(nextProps, newTriggeringProps);
+        }
+      };
+
+      _proto.subscribe = function subscribe(props, triggeredFromProps) {
+        this.setState({
+          isFetching: true,
+          values: {},
+          triggeredFromProps
+        });
+        this.subscribeWithoutSettingState(props);
+      };
+
+      _proto.subscribeWithoutSettingState = function subscribeWithoutSettingState(props) {
+        var _this2 = this;
+
+        this.unsubscribe();
+        this._subscription = getNewProps(props).subscribe(function (values) {
+          if (_this2._exitedConstructor) {
+            _this2.setState({
+              values,
+              isFetching: false
+            });
+          } else {
+            // Source has called with first values synchronously while we're still in the
+            // constructor. Here, `this.setState` does not work and we must mutate this.state
+            // directly
+            _this2.state.values = values;
+            _this2.state.isFetching = false;
           }
-        } // eslint-disable-next-line
+        }, function (error) {
+          // we need to explicitly log errors from the new observables, or they will get lost
+          // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
+          console.error("Error in Rx composition in withObservables()", error);
+        });
+      };
 
-      }, {
-        key: "UNSAFE_componentWillReceiveProps",
-        value: function UNSAFE_componentWillReceiveProps(nextProps) {
-          var triggeredFromProps = this.state.triggeredFromProps;
-          var newTriggeringProps = getTriggeringProps(nextProps, triggerProps);
+      _proto.unsubscribe = function unsubscribe() {
+        this._subscription && this._subscription.unsubscribe();
+        this.cancelPrefetchTimeout();
+      };
 
-          if (!identicalArrays(triggeredFromProps, newTriggeringProps)) {
-            this.subscribe(nextProps, newTriggeringProps);
-          }
-        }
-      }, {
-        key: "subscribe",
-        value: function subscribe(props, triggeredFromProps) {
-          this.setState({
-            isFetching: true,
-            values: {},
-            triggeredFromProps
-          });
-          this.subscribeWithoutSettingState(props);
-        }
-      }, {
-        key: "subscribeWithoutSettingState",
-        value: function subscribeWithoutSettingState(props) {
-          var _this2 = this;
+      _proto.cancelPrefetchTimeout = function cancelPrefetchTimeout() {
+        this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
+        this._prefetchTimeout = null;
+      };
 
-          this.unsubscribe();
-          this._subscription = getNewProps(props).subscribe(function (values) {
-            if (_this2._exitedConstructor) {
-              _this2.setState({
-                values,
-                isFetching: false
-              });
-            } else {
-              // Source has called with first values synchronously while we're still in the
-              // constructor. Here, `this.setState` does not work and we must mutate this.state
-              // directly
-              _this2.state.values = values;
-              _this2.state.isFetching = false;
-            }
-          }, function (error) {
-            // we need to explicitly log errors from the new observables, or they will get lost
-            // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
-            console.error("Error in Rx composition in withObservables()", error);
-          });
-        }
-      }, {
-        key: "unsubscribe",
-        value: function unsubscribe() {
-          this._subscription && this._subscription.unsubscribe();
-          this.cancelPrefetchTimeout();
-        }
-      }, {
-        key: "cancelPrefetchTimeout",
-        value: function cancelPrefetchTimeout() {
-          this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
-          this._prefetchTimeout = null;
-        }
-      }, {
-        key: "shouldComponentUpdate",
-        value: function shouldComponentUpdate(nextProps, nextState) {
-          // If one of the triggering props change but we don't yet have first values from the new
-          // observable, *don't* render anything!
-          return !nextState.isFetching;
-        }
-      }, {
-        key: "componentWillUnmount",
-        value: function componentWillUnmount() {
-          this.unsubscribe();
-        }
-      }, {
-        key: "render",
-        value: function render() {
-          var _this$state = this.state,
-              isFetching = _this$state.isFetching,
-              values = _this$state.values;
-          return isFetching ? null : react.createElement(BaseComponent, _objectSpread({}, this.props, values));
-        }
-      }]);
+      _proto.shouldComponentUpdate = function shouldComponentUpdate(nextProps, nextState) {
+        // If one of the triggering props change but we don't yet have first values from the new
+        // observable, *don't* render anything!
+        return !nextState.isFetching;
+      };
+
+      _proto.componentWillUnmount = function componentWillUnmount() {
+        this.unsubscribe();
+      };
+
+      _proto.render = function render() {
+        var _this$state = this.state,
+            isFetching = _this$state.isFetching,
+            values = _this$state.values;
+        return isFetching ? null : react.createElement(BaseComponent, _objectSpread2({}, this.props, {}, values));
+      };
 
       return WithObservablesComponent;
     }(react.Component);
