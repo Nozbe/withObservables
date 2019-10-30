@@ -68,19 +68,29 @@ var toObservable = function toObservable(value) {
   return typeof value.observe === 'function' ? value.observe() : value;
 };
 
-var identicalArrays = function identicalArrays(arrayA, arrayB) {
-  return arrayA.length === arrayB.length && arrayA.every(function (el, index) {
-    return el === arrayB[index];
-  });
-};
+function identicalArrays(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (var i = 0, len = left.length; i < len; i += 1) {
+    if (left[i] !== right[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 var makeGetNewProps = function makeGetNewProps(getObservables) {
-  return function (props) {
-    // $FlowFixMe
-    var rawObservables = getObservables(props);
-    var observables = mapObject(toObservable, rawObservables);
-    return combineLatestObject(observables);
-  };
+  return (// Note: named function for easier debugging
+    function withObservablesGetNewProps(props) {
+      // $FlowFixMe
+      var rawObservables = getObservables(props);
+      var observables = mapObject(toObservable, rawObservables);
+      return combineLatestObject(observables);
+    }
+  );
 };
 
 function getTriggeringProps(props, propNames) {

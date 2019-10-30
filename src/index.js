@@ -27,17 +27,30 @@ type WithObservablesSynchronized<Props, ObservableProps> = HOC<
 const toObservable = (value: any): Observable<any> =>
   typeof value.observe === 'function' ? value.observe() : value
 
-const identicalArrays = <T, V: T[]>(arrayA: V, arrayB: V): boolean =>
-  arrayA.length === arrayB.length && arrayA.every((el, index) => el === arrayB[index])
+function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  for (let i = 0, len = left.length; i < len; i += 1) {
+    if (left[i] !== right[i]) {
+      return false
+    }
+  }
+
+  return true
+}
 
 const makeGetNewProps: <A: {}, B: {}>(
   GetObservables<A, B>,
-) => A => Observable<*> = getObservables => props => {
-  // $FlowFixMe
-  const rawObservables = getObservables(props)
-  const observables = mapObject(toObservable, rawObservables)
-  return combineLatestObject(observables)
-}
+) => A => Observable<Object> = getObservables =>
+  // Note: named function for easier debugging
+  function withObservablesGetNewProps(props): Observable<Object> {
+    // $FlowFixMe
+    const rawObservables = getObservables(props)
+    const observables = mapObject(toObservable, rawObservables)
+    return combineLatestObject(observables)
+  }
 
 function getTriggeringProps<PropsInput: {}>(
   props: PropsInput,
