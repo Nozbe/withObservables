@@ -245,12 +245,11 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
       };
 
       _proto.subscribeWithoutSettingState = function subscribeWithoutSettingState(props) {
-        var _this2 = this;
-
+        var self = this;
         this.unsubscribe();
-        this._subscription = getNewProps(props).subscribe(function (values) {
-          if (_this2._exitedConstructor) {
-            _this2.setState({
+        this._subscription = getNewProps(props).subscribe(function withObservablesOnChange(values) {
+          if (self._exitedConstructor) {
+            self.setState({
               values,
               isFetching: false
             });
@@ -258,8 +257,8 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
             // Source has called with first values synchronously while we're still in the
             // constructor. Here, `this.setState` does not work and we must mutate this.state
             // directly
-            _this2.state.values = values;
-            _this2.state.isFetching = false;
+            self.state.values = values;
+            self.state.isFetching = false;
           }
         }, function (error) {
           // we need to explicitly log errors from the new observables, or they will get lost

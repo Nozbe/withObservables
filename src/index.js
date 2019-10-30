@@ -159,11 +159,12 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
       }
 
       subscribeWithoutSettingState(props: PropsInput): void {
+        const self = this
         this.unsubscribe()
         this._subscription = getNewProps(props).subscribe(
-          values => {
-            if (this._exitedConstructor) {
-              this.setState({
+          function withObservablesOnChange(values): void {
+            if (self._exitedConstructor) {
+              self.setState({
                 values,
                 isFetching: false,
               })
@@ -171,8 +172,8 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
               // Source has called with first values synchronously while we're still in the
               // constructor. Here, `this.setState` does not work and we must mutate this.state
               // directly
-              this.state.values = values
-              this.state.isFetching = false
+              self.state.values = values
+              self.state.isFetching = false
             }
           },
           error => {
