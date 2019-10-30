@@ -68,6 +68,42 @@ var mapObject = function mapObject(fn, obj) {
   return willReturn;
 };
 
+var cleanUpBatchingInterval = 250; // ms
+
+var cleanUpInterval = 2000; // ms
+
+var pendingCleanupActions = [];
+var scheduledCleanUpScheduler = null;
+
+function cleanUpWithObservablesActions(actions) {
+  actions.forEach(function (action) {
+    return action();
+  });
+}
+
+function scheduleCleanUp() {
+  scheduledCleanUpScheduler = null;
+  var actions = pendingCleanupActions.slice(0);
+  pendingCleanupActions = [];
+  setTimeout(function () {
+    cleanUpWithObservablesActions(actions);
+  }, cleanUpInterval);
+} // Apparently, setTimeout/clearTimeout functions are very expensive (22 microseconds/call)
+// And we must schedule a cleanup / garbage collection action
+// (https://github.com/facebook/react/issues/15317#issuecomment-491269433)
+// The workaround is this: all cleanup actions scheduled within a 250ms window will be scheduled
+// together (for 2500ms later).
+// This way, all actions within that window will only call setTimeout twice
+
+
+function scheduleForCleanup(fn) {
+  pendingCleanupActions.push(fn);
+
+  if (!scheduledCleanUpScheduler) {
+    scheduledCleanUpScheduler = setTimeout(scheduleCleanUp, cleanUpBatchingInterval);
+  }
+}
+
 var toObservable = function toObservable(value) {
   return typeof value.observe === 'function' ? value.observe() : value;
 };
@@ -105,11 +141,9 @@ function getTriggeringProps(props, propNames) {
   return propNames.map(function (name) {
     return props[name];
   });
-}
-
-var prefetchTimeout = 2000; // ms
-// TODO: This is probably not going to be 100% safe to use under React async mode
+} // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
+
 
 var WithObservablesComponent =
 /*#__PURE__*/
@@ -122,7 +156,7 @@ function (_Component) {
     _this = _Component.call(this, props) || this;
     _this._subscription = null;
     _this._isMounted = false;
-    _this._prefetchTimeout = null;
+    _this._prefetchTimeoutCanceled = false;
     _this._exitedConstructor = false;
     _this.BaseComponent = BaseComponent;
     _this.triggerProps = triggerProps;
@@ -143,11 +177,13 @@ function (_Component) {
 
     _this.subscribeWithoutSettingState(_this.props);
 
-    _this._prefetchTimeout = setTimeout(function () {
-      console.warn("withObservables - unsubscribing from source. Leaky component!");
+    scheduleForCleanup(function () {
+      if (!_this._prefetchTimeoutCanceled) {
+        console.warn("withObservables - unsubscribing from source. Leaky component!");
 
-      _this.unsubscribe();
-    }, prefetchTimeout);
+        _this.unsubscribe();
+      }
+    });
     _this._exitedConstructor = true;
     return _this;
   }
@@ -219,8 +255,7 @@ function (_Component) {
   };
 
   _proto.cancelPrefetchTimeout = function cancelPrefetchTimeout() {
-    this._prefetchTimeout && clearTimeout(this._prefetchTimeout);
-    this._prefetchTimeout = null;
+    this._prefetchTimeoutCanceled = true;
   };
 
   _proto.shouldComponentUpdate = function shouldComponentUpdate(nextProps, nextState) {
