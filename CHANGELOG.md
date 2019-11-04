@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Improve performance slightly
+- Name functions for easier debugging / profiling
+
 ## 1.0.5 - 2019-08-10
 
 - Fix Typescript bindings
