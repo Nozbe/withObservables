@@ -8,6 +8,7 @@ import hoistNonReactStatic from 'hoist-non-react-statics'
 
 import combineLatestObject from './combineLatestObject'
 import mapObject from './mapObject'
+import scheduleForCleanup from './garbageCollector'
 
 type UnaryFn<A, R> = (a: A) => R
 type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>
@@ -63,8 +64,6 @@ function getTriggeringProps<PropsInput: {}>(
   return propNames.map(name => props[name])
 }
 
-const prefetchTimeout = 2000 // ms
-
 // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
 class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Component<
@@ -85,7 +84,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   _isMounted = false
 
-  _prefetchTimeout: ?TimeoutID = null
+  _prefetchTimeoutCanceled: boolean = false
 
   _exitedConstructor = false
 
@@ -116,10 +115,12 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     // (If component is mounted after all, just super slow, we'll subscribe again on didMount)
     this.subscribeWithoutSettingState(this.props)
 
-    this._prefetchTimeout = setTimeout(() => {
-      console.warn(`withObservables - unsubscribing from source. Leaky component!`)
-      this.unsubscribe()
-    }, prefetchTimeout)
+    scheduleForCleanup(() => {
+      if (!this._prefetchTimeoutCanceled) {
+        console.warn(`withObservables - unsubscribing from source. Leaky component!`)
+        this.unsubscribe()
+      }
+    })
 
     this._exitedConstructor = true
   }
@@ -192,8 +193,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   }
 
   cancelPrefetchTimeout(): void {
-    this._prefetchTimeout && clearTimeout(this._prefetchTimeout)
-    this._prefetchTimeout = null
+    this._prefetchTimeoutCanceled = true
   }
 
   shouldComponentUpdate(nextProps, nextState): boolean {
