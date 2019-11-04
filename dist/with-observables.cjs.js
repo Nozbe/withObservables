@@ -89,7 +89,7 @@ function scheduleCleanUp() {
     cleanUpWithObservablesActions(actions);
   }, cleanUpInterval);
 } // Apparently, setTimeout/clearTimeout functions are very expensive (22 microseconds/call)
-// And we must schedule a cleanup / garbage collection action
+// But we must schedule a cleanup / garbage collection action
 // (https://github.com/facebook/react/issues/15317#issuecomment-491269433)
 // The workaround is this: all cleanup actions scheduled within a 250ms window will be scheduled
 // together (for 2500ms later).
