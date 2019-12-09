@@ -82,7 +82,7 @@ withObservables(triggerProps, getObservables)
 
 ## Typescript
 
-The TypeScript bindings expose a helper type, `ObservablifyProps<Props, ObservableKeys, ObservableConvertibleKeys>` which can make it easier to wrap components without duplicating interfaces:
+The TypeScript bindings expose a helper type, `ObservableifyProps<Props, ObservableKeys, ObservableConvertibleKeys>` which can make it easier to wrap components without duplicating interfaces:
 ```ts
 interface Props {
   post: Post;
@@ -93,7 +93,7 @@ interface Props {
 
 const PostRenderer: React.FC<Props> = (props) => ( ... );
 
-type InputProps = ObservablifyProps<Props, "author", "post">
+type InputProps = ObservableifyProps<Props, "author", "post">
 const enhance = withObservables(["post", "author"], ({ post }: InputProps) => ({
   post,
   author: author.observe()
