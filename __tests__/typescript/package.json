@@ -1,0 +1,13 @@
+{
+  "name": "typescript-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsd-check": "^0.6.0",
+    "typescript": "^3.8.3"
+  }
+}
