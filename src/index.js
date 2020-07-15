@@ -20,7 +20,7 @@ type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertibl
 type TriggerProps<A> = $Keys<A>[] | null
 type GetObservables<A, B> = (props: A) => B
 
-type WithObservablesSynchronized<Props, ObservableProps> = HOC<
+type WithObservables<Props, ObservableProps> = HOC<
   { ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
   Props,
 >
@@ -42,17 +42,6 @@ function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
   return true
 }
 
-const makeGetNewProps: <A: {}, B: {}>(
-  GetObservables<A, B>,
-) => A => Observable<Object> = getObservables =>
-  // Note: named function for easier debugging
-  function withObservablesGetNewProps(props): Observable<Object> {
-    // $FlowFixMe
-    const rawObservables = getObservables(props)
-    const observables = mapObject(toObservable, rawObservables)
-    return combineLatestObject(observables)
-  }
-
 function getTriggeringProps<PropsInput: {}>(
   props: PropsInput,
   propNames: TriggerProps<PropsInput>,
@@ -63,6 +52,8 @@ function getTriggeringProps<PropsInput: {}>(
 
   return propNames.map(name => props[name])
 }
+
+const hasOwn = Object.prototype.hasOwnProperty
 
 // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
@@ -78,9 +69,9 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   triggerProps: TriggerProps<PropsInput>
 
-  getNewProps: PropsInput => Observable<Object>
+  getObservables: PropsInput => Observable<Object>
 
-  _subscription: ?Subscription = null
+  _unsubscribe: ?() => void = null
 
   _isMounted = false
 
@@ -91,13 +82,13 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   constructor(
     props,
     BaseComponent: React$ComponentType<Object>,
-    getNewProps: PropsInput => Observable<Object>,
+    getObservables: GetObservables<PropsInput, Object>,
     triggerProps: TriggerProps<PropsInput>,
   ): void {
     super(props)
     this.BaseComponent = BaseComponent
     this.triggerProps = triggerProps
-    this.getNewProps = getNewProps
+    this.getObservables = getObservables
     this.state = {
       isFetching: true,
       values: {},
@@ -129,7 +120,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this._isMounted = true
     this.cancelPrefetchTimeout()
 
-    if (!this._subscription) {
+    if (!this._unsubscribe) {
       console.warn(
         `withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing`,
       )
@@ -159,20 +150,84 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this.subscribeWithoutSettingState(props)
   }
 
+  // NOTE: This is a hand-coded equivalent of Rx combineLatestObject
   subscribeWithoutSettingState(props: PropsInput): void {
     this.unsubscribe()
-    this._subscription = this.getNewProps(props).subscribe(
-      values => this.withObservablesOnChange(values),
-      error => {
-        // we need to explicitly log errors from the new observables, or they will get lost
-        // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
-        console.error(`Error in Rx composition in withObservables()`, error)
-      },
-    )
+    // console.log('subscribe')
+
+    const observablesObject = this.getObservables(props)
+
+    const subscriptions = []
+    let isUnsubscribed = false
+    const unsubscribe = () => {
+      isUnsubscribed = true
+      subscriptions.forEach(sub => {
+        sub.unsubscribe()
+      })
+    }
+
+    const values = {}
+    let valueCount = 0
+
+    const keys = Object.keys(observablesObject)
+    keys.forEach(key => {
+      if (isUnsubscribed) {
+        return
+      }
+
+      const observable = toObservable(observablesObject[key])
+      const subscription = observable.subscribe(
+        value => {
+          // console.log(`new value for ${key}, all keys: ${keys}`)
+          // Check if we have values for all observables; if yes - we can render; otherwise - only set value
+          const isFirstEmission = !hasOwn.call(values, key)
+          if (isFirstEmission) {
+            valueCount += 1
+          }
+
+          values[key] = value
+
+          const hasAllValues = valueCount === keys.length
+          if (hasAllValues && !isUnsubscribed) {
+            // console.log('okay, all values')
+            this.withObservablesOnChange((values: any))
+          }
+        },
+        error => {
+          // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
+          unsubscribe()
+          this.withObservablesOnError(error)
+        },
+        () => {
+          // Completion of an observable unsubscribed from all observables
+          // console.log(`completed for ${key}`)
+        },
+      )
+      subscriptions.push(subscription)
+    })
+
+    this._unsubscribe = unsubscribe
+
+    // const rawObservables = this.getObservables(props)
+    // const observables = mapObject(toObservable, rawObservables)
+    // const observable = combineLatestObject(observables)
+
+    // const subscription = observable.subscribe(
+    //   values => this.withObservablesOnChange(values),
+    //   error => this.withObservablesOnError(error),
+    // )
+    // this._unsubscribe = () => subscription.unsubscribe()
+  }
+
+  withObservablesOnError(error: Error): void {
+    // we need to explicitly log errors from the new observables, or they will get lost
+    // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
+    console.error(`Error in Rx composition in withObservables()`, error)
   }
 
   // DO NOT rename (we want on call stack as debugging help)
   withObservablesOnChange(values: AddedValues): void {
+    // console.log(values)
     if (this._exitedConstructor) {
       this.setState({
         values,
@@ -188,7 +243,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   }
 
   unsubscribe(): void {
-    this._subscription && this._subscription.unsubscribe()
+    this._unsubscribe && this._unsubscribe()
     this.cancelPrefetchTimeout()
   }
 
@@ -231,17 +286,15 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 // pass `null` to `triggerProps`.
 //
 // Example use:
-//   withObservablesSynchronized(['task'], ({ task }) => ({
+//   withObservables(['task'], ({ task }) => ({
 //     task: task,
 //     comments: task.comments.observe()
 //   }))
 
-const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
+const withObservables = <PropsInput: {}, ObservableProps: {}>(
   triggerProps: TriggerProps<PropsInput>,
   getObservables: GetObservables<PropsInput, ObservableProps>,
-): WithObservablesSynchronized<PropsInput, ObservableProps> => {
-  const getNewProps = makeGetNewProps(getObservables)
-
+): WithObservables<PropsInput, ObservableProps> => {
   type AddedValues = Object
 
   return BaseComponent => {
@@ -250,7 +303,7 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
       PropsInput,
     > {
       constructor(props): void {
-        super(props, BaseComponent, getNewProps, triggerProps)
+        super(props, BaseComponent, getObservables, triggerProps)
       }
     }
 
@@ -258,4 +311,4 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
   }
 }
 
-export default withObservablesSynchronized
+export default withObservables
