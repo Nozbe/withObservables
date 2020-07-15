@@ -2,12 +2,10 @@
 /* eslint-disable no-console */
 /* eslint-disable react/sort-comp */
 
-import type { Observable, Subscription } from 'rxjs'
+import type { Observable } from 'rxjs'
 import { Component, createElement } from 'react'
 import hoistNonReactStatic from 'hoist-non-react-statics'
 
-import combineLatestObject from './combineLatestObject'
-import mapObject from './mapObject'
 import scheduleForCleanup from './garbageCollector'
 
 type UnaryFn<A, R> = (a: A) => R
@@ -25,8 +23,40 @@ type WithObservables<Props, ObservableProps> = HOC<
   Props,
 >
 
-const toObservable = (value: any): Observable<any> =>
-  typeof value.observe === 'function' ? value.observe() : value
+function subscribe(
+  value: any,
+  onNext: any => void,
+  onError: Error => void,
+  onComplete: () => void,
+): () => void {
+  // TODO: If this approach works, add markers to Watermelon to indicate Model, Query cleanly
+  if (value.experimentalSubscribe && value._raw) {
+    // HACK: This is a Watermelon Model
+    onNext(value)
+    return value.experimentalSubscribe(isDeleted => {
+      if (isDeleted) {
+        onComplete()
+      } else {
+        onNext(value)
+      }
+    })
+  } else if (value.experimentalSubscribe && value._rawDescription) {
+    // HACK: This is a Watermelon Query
+    return value.experimentalSubscribe(onNext)
+  } else if (typeof value.observe === 'function') {
+    const subscription = value.observe().subscribe(onNext, onError, onComplete)
+    return () => subscription.unsubscribe()
+  } else if (typeof value.subscribe === 'function') {
+    const subscription = value.subscribe(onNext, onError, onComplete)
+    return () => subscription.unsubscribe()
+  }
+
+  console.error(`Value passed to withObservables doesn't appear to be observable:`)
+  console.error(value)
+  throw new Error(
+    `Value passed to withObservables doesn't appear to be observable. See console for details`,
+  )
+}
 
 function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
   if (left.length !== right.length) {
@@ -161,9 +191,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     let isUnsubscribed = false
     const unsubscribe = () => {
       isUnsubscribed = true
-      subscriptions.forEach(sub => {
-        sub.unsubscribe()
-      })
+      subscriptions.forEach(sub => sub())
     }
 
     const values = {}
@@ -175,35 +203,36 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
         return
       }
 
-      const observable = toObservable(observablesObject[key])
-      const subscription = observable.subscribe(
-        value => {
-          // console.log(`new value for ${key}, all keys: ${keys}`)
-          // Check if we have values for all observables; if yes - we can render; otherwise - only set value
-          const isFirstEmission = !hasOwn.call(values, key)
-          if (isFirstEmission) {
-            valueCount += 1
-          }
+      subscriptions.push(
+        subscribe(
+          observablesObject[key],
+          value => {
+            // console.log(`new value for ${key}, all keys: ${keys}`)
+            // Check if we have values for all observables; if yes - we can render; otherwise - only set value
+            const isFirstEmission = !hasOwn.call(values, key)
+            if (isFirstEmission) {
+              valueCount += 1
+            }
 
-          values[key] = value
+            values[key] = value
 
-          const hasAllValues = valueCount === keys.length
-          if (hasAllValues && !isUnsubscribed) {
-            // console.log('okay, all values')
-            this.withObservablesOnChange((values: any))
-          }
-        },
-        error => {
-          // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
-          unsubscribe()
-          this.withObservablesOnError(error)
-        },
-        () => {
-          // Completion of an observable unsubscribed from all observables
-          // console.log(`completed for ${key}`)
-        },
+            const hasAllValues = valueCount === keys.length
+            if (hasAllValues && !isUnsubscribed) {
+              // console.log('okay, all values')
+              this.withObservablesOnChange((values: any))
+            }
+          },
+          error => {
+            // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
+            unsubscribe()
+            this.withObservablesOnError(error)
+          },
+          () => {
+            // Completion of an observable unsubscribed from all observables
+            // console.log(`completed for ${key}`)
+          },
+        ),
       )
-      subscriptions.push(subscription)
     })
 
     this._unsubscribe = unsubscribe
