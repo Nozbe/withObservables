@@ -236,16 +236,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     })
 
     this._unsubscribe = unsubscribe
-
-    // const rawObservables = this.getObservables(props)
-    // const observables = mapObject(toObservable, rawObservables)
-    // const observable = combineLatestObject(observables)
-
-    // const subscription = observable.subscribe(
-    //   values => this.withObservablesOnChange(values),
-    //   error => this.withObservablesOnError(error),
-    // )
-    // this._unsubscribe = () => subscription.unsubscribe()
   }
 
   withObservablesOnError(error: Error): void {
