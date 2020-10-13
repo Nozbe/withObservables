@@ -34,7 +34,8 @@
   },
   "dependencies": {
     "hoist-non-react-statics": "^3.3.0",
-    "rxjs": "^6.4.0"
+    "rxjs": "^6.6.3",
+    "rxjs-compat": "^6.6.3"
   },
   "peerDependencies": {
     "react": "^16.4.2"
