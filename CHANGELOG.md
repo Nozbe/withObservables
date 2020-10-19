@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.0.6 - 2020-10-19
+
 - Improve performance
 - Name functions for easier debugging / profiling
+- fix rxjs-compat issue with the latest version of WatermelonDB
 
 ## 1.0.5 - 2019-08-10
 
