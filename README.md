@@ -102,6 +102,27 @@ const enhance = withObservables(["post", "author"], ({ post }: InputProps) => ({
 export default enhance(PostRenderer);
 ```
 
+Or you can let `getObservables` define your props for you:
+```tsx
+import withObservables, {ExtractedObservables} from "@nozbe/with-observables"
+
+const getObservables = ({ post }: { post: Post }}) => ({
+  post,
+  author: author.observe()
+});
+
+interface Props extends ExtractedObservables<ReturnType<typeof getObservables>> {
+  someOtherProp: boolean;
+  anotherProp: number;
+}
+
+const PostRenderer: React.FC<Props> = (props) => (
+  <>{props.author.id}</>
+);
+
+export default withObservables(["post"], getObservables)(PostRenderer);
+```
+
 ## Author and license
 
 **withObservables** was created by [@Nozbe](https://github.com/Nozbe) for [WatermelonDB](https://github.com/Nozbe/WatermelonDB).
