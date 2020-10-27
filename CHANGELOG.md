@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## 1.0.6 - 2020-10-27
+## 1.0.7 - 2020-10-27
 
 - Improve performance
 - Name functions for easier debugging / profiling
