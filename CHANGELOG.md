@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.0.8 - 2020-12-17
+
+- Fix Flow issues when running Flow 0.140.0
+
 ## 1.0.7 - 2020-10-27
 
 - Improve performance
