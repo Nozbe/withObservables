@@ -21,7 +21,7 @@ type TriggerProps<A> = $Keys<A>[] | null
 type GetObservables<A, B> = (props: A) => B
 
 type WithObservablesSynchronized<Props, ObservableProps> = HOC<
-  { ...$Exact<Props>, ...$Exact<$ObjMap<ObservableProps, ExtractTypeFromObservable>> },
+  { ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
   Props,
 >
 
