@@ -44,9 +44,9 @@ function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
 
 const makeGetNewProps: <A: {}, B: {}>(
   GetObservables<A, B>,
-) => A => Observable<Object> = getObservables =>
+) => A => Observable<Object> = (getObservables: $FlowFixMe) =>
   // Note: named function for easier debugging
-  function withObservablesGetNewProps(props): Observable<Object> {
+  function withObservablesGetNewProps(props: {}): Observable<Object> {
     // $FlowFixMe
     const rawObservables = getObservables(props)
     const observables = mapObject(toObservable, rawObservables)

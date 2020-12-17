@@ -5,6 +5,7 @@
 [include]
 
 [libs]
+flow-typed/
 
 [options]
 esproposal.optional_chaining=enable
@@ -14,4 +15,4 @@ module.ignore_non_literal_requires=true
 module.file_ext=.js
 
 [version]
->=0.84
+>=0.140
