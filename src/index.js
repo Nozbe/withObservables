@@ -92,6 +92,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   {
     isFetching: boolean,
     values: $FlowFixMe<AddedValues>,
+    error: ?Error,
     triggeredFromProps: any[],
   },
 > {
@@ -122,6 +123,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this.state = {
       isFetching: true,
       values: {},
+      error: null,
       triggeredFromProps: getTriggeringProps(props, triggerProps),
     }
 
@@ -138,7 +140,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     scheduleForCleanup(() => {
       if (!this._prefetchTimeoutCanceled) {
-        console.warn(`withObservables - unsubscribing from source. Leaky component!`)
+        console.warn(`[withObservables] Unsubscribing from source. Leaky component!`)
         this.unsubscribe()
       }
     })
@@ -152,7 +154,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     if (!this._unsubscribe) {
       console.warn(
-        `withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing`,
+        `[withObservables] Component mounted but no subscription present. Slow component (timed out) or a bug! Re-subscribing...`,
       )
 
       const newTriggeringProps = getTriggeringProps(this.props, this.triggerProps)
@@ -238,12 +240,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this._unsubscribe = unsubscribe
   }
 
-  withObservablesOnError(error: Error): void {
-    // we need to explicitly log errors from the new observables, or they will get lost
-    // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
-    console.error(`Error in Rx composition in withObservables()`, error)
-  }
-
   // DO NOT rename (we want on call stack as debugging help)
   withObservablesOnChange(values: AddedValues): void {
     // console.log(values)
@@ -259,6 +255,23 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
       this.state.values = values
       this.state.isFetching = false
     }
+  }
+
+  // DO NOT rename (we want on call stack as debugging help)
+  withObservablesOnError(error: Error): void {
+    // console.error(`[withObservables] Error in Rx composition`, error)
+    if (this._exitedConstructor) {
+      this.setState({
+        error,
+        isFetching: false,
+      })
+    } else {
+      this.state.error = error
+      this.state.isFetching = false
+    }
+    // TODO: Unsubscribe proactively to lessen GC pressure
+    // since we know for sure we won't be able to use the Observable again
+    // this.unsubscribe()
   }
 
   unsubscribe(): void {
@@ -281,10 +294,17 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   }
 
   render(): * {
-    const { isFetching, values } = this.state
-    return isFetching ?
-      null :
-      createElement(this.BaseComponent, Object.assign({}, this.props, values))
+    const { isFetching, values, error } = this.state
+
+    if (isFetching) {
+      return null
+    } else if (error) {
+      // rethrow error found in Rx composition as to unify withObservables errors with other React errors
+      // the responsibility for handling errors is on the user (by using an Error Boundary)
+      throw error
+    } else {
+      return createElement(this.BaseComponent, Object.assign({}, this.props, values))
+    }
   }
 }
 
@@ -303,6 +323,8 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 //
 // If you only want to subscribe to Observables once (the Observables don't depend on outer props),
 // pass `null` to `triggerProps`.
+//
+// Errors are re-thrown in render(). Use React Error Boundary to catch them.
 //
 // Example use:
 //   withObservables(['task'], ({ task }) => ({

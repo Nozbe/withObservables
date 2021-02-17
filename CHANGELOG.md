@@ -4,11 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## 1.0.6 - 2020-10-19
+- Observable errors are now re-thrown in render, so that you can catch them with an Error Boundary
+- withObservable no longer has a dependency on RxJS package, which makes it leaner, more performant
+   and should hopefully fix persistent issues with rxjs-compat that some users have
+
+## 1.0.8 - 2020-12-17
+
+- Fix Flow issues when running Flow 0.140.0
+
+## 1.0.7 - 2020-10-27
 
 - Improve performance
 - Name functions for easier debugging / profiling
-- fix rxjs-compat issue with the latest version of WatermelonDB
+- Fix RxJS issue
 
 ## 1.0.5 - 2019-08-10
 
