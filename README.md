@@ -3,11 +3,11 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
   </a>
-  
+
   <a href="https://travis-ci.com/Nozbe/withObservables">
     <img src="https://api.travis-ci.com/Nozbe/withObservables.svg?branch=master" alt="CI Status">
   </a>
-  
+
   <a href="https://www.npmjs.com/package/@nozbe/with-observables">
     <img src="https://img.shields.io/npm/v/@nozbe/with-observables.svg" alt="npm">
   </a>
@@ -72,6 +72,8 @@ withObservables(triggerProps, getObservables)
 //
 // If you only want to subscribe to Observables once (the Observables don't depend on outer props),
 // pass `null` to `triggerProps`.
+//
+// Errors are re-thrown in render(). Use React Error Boundary to catch them.
 //
 // Example use:
 //   withObservables(['task'], ({ task }) => ({
