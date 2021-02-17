@@ -1,68 +1,11 @@
 import { createElement, Component } from 'react';
 import hoistNonReactStatic from 'hoist-non-react-statics';
-import { from } from 'rxjs/observable/from';
-import { combineLatest } from 'rxjs/observable/combineLatest';
-import { map } from 'rxjs/operators/map';
 
 function _inheritsLoose(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
   subClass.prototype.constructor = subClass;
   subClass.__proto__ = superClass;
 }
-
-// inspired by ramda and rambda
-
-/* eslint-disable */
-var zipObj = function zipObj(keys, values) {
-  if (values === undefined) {
-    return function (values) {
-      return zipObj(keys, values);
-    };
-  }
-
-  var result = {};
-
-  for (var i = 0, l = Math.min(keys.length, values.length); i < l; i++) {
-    result[keys[i]] = values[i];
-  }
-
-  return result;
-};
-
-// Transforms an object of Observables into an Observable of an object
-// i.e. { a: Observable<number>, b: Observable<string> } -> Observable<{ a: number, b: string }>
-function combineLatestObject(object) {
-  var keys = Object.keys(object);
-  var observables = Object.values(object); // Optimization: If subscribing just one observable, skip combineLatest
-
-  if (keys.length === 1) {
-    var _key = keys[0]; // $FlowFixMe
-
-    return from(observables[0]).pipe(map(function (value) {
-      return {
-        [_key]: value
-      };
-    }));
-  } // $FlowFixMe
-
-
-  return combineLatest(observables, function (...newValues) {
-    return zipObj(keys, newValues);
-  });
-}
-
-// inspired by ramda and rambda
-
-/* eslint-disable */
-var mapObject = function mapObject(fn, obj) {
-  var willReturn = {};
-
-  for (var prop in obj) {
-    willReturn[prop] = fn(obj[prop], prop);
-  }
-
-  return willReturn;
-};
 
 var cleanUpBatchingInterval = 250; // ms
 
@@ -100,9 +43,38 @@ function scheduleForCleanup(fn) {
   }
 }
 
-var toObservable = function toObservable(value) {
-  return typeof value.observe === 'function' ? value.observe() : value;
-};
+function subscribe(value, onNext, onError, onComplete) {
+  // TODO: If this approach works, add markers to Watermelon to indicate Model, Query cleanly
+  if (value.experimentalSubscribe && value._raw) {
+    // HACK: This is a Watermelon Model
+    onNext(value);
+    return value.experimentalSubscribe(function (isDeleted) {
+      if (isDeleted) {
+        onComplete();
+      } else {
+        onNext(value);
+      }
+    });
+  } else if (value.experimentalSubscribe && value._rawDescription) {
+    // HACK: This is a Watermelon Query
+    return value.experimentalSubscribe(onNext);
+  } else if (typeof value.observe === 'function') {
+    var subscription = value.observe().subscribe(onNext, onError, onComplete);
+    return function () {
+      return subscription.unsubscribe();
+    };
+  } else if (typeof value.subscribe === 'function') {
+    var _subscription = value.subscribe(onNext, onError, onComplete);
+
+    return function () {
+      return _subscription.unsubscribe();
+    };
+  } // eslint-disable-next-line no-console
+
+
+  console.error("[withObservable] Value passed to withObservables doesn't appear to be observable:", value);
+  throw new Error("[withObservable] Value passed to withObservables doesn't appear to be observable. See console for details");
+}
 
 function identicalArrays(left, right) {
   if (left.length !== right.length) {
@@ -118,17 +90,6 @@ function identicalArrays(left, right) {
   return true;
 }
 
-var makeGetNewProps = function makeGetNewProps(getObservables) {
-  return (// Note: named function for easier debugging
-    function withObservablesGetNewProps(props) {
-      // $FlowFixMe
-      var rawObservables = getObservables(props);
-      var observables = mapObject(toObservable, rawObservables);
-      return combineLatestObject(observables);
-    }
-  );
-};
-
 function getTriggeringProps(props, propNames) {
   if (!propNames) {
     return [];
@@ -137,29 +98,31 @@ function getTriggeringProps(props, propNames) {
   return propNames.map(function (name) {
     return props[name];
   });
-} // TODO: This is probably not going to be 100% safe to use under React async mode
-// Do more research
+}
 
+var hasOwn = Object.prototype.hasOwnProperty; // TODO: This is probably not going to be 100% safe to use under React async mode
+// Do more research
 
 var WithObservablesComponent =
 /*#__PURE__*/
 function (_Component) {
   _inheritsLoose(WithObservablesComponent, _Component);
 
-  function WithObservablesComponent(props, BaseComponent, getNewProps, triggerProps) {
+  function WithObservablesComponent(props, BaseComponent, getObservables, triggerProps) {
     var _this;
 
     _this = _Component.call(this, props) || this;
-    _this._subscription = null;
+    _this._unsubscribe = null;
     _this._isMounted = false;
     _this._prefetchTimeoutCanceled = false;
     _this._exitedConstructor = false;
     _this.BaseComponent = BaseComponent;
     _this.triggerProps = triggerProps;
-    _this.getNewProps = getNewProps;
+    _this.getObservables = getObservables;
     _this.state = {
       isFetching: true,
       values: {},
+      error: null,
       triggeredFromProps: getTriggeringProps(props, triggerProps)
     }; // The recommended React practice is to subscribe to async sources on `didMount`
     // Unfortunately, that's slow, because we have an unnecessary empty render even if we
@@ -175,7 +138,8 @@ function (_Component) {
 
     scheduleForCleanup(function () {
       if (!_this._prefetchTimeoutCanceled) {
-        console.warn("withObservables - unsubscribing from source. Leaky component!");
+        // eslint-disable-next-line no-console
+        console.warn("[withObservables] Unsubscribing from source. Leaky component!");
 
         _this.unsubscribe();
       }
@@ -190,8 +154,9 @@ function (_Component) {
     this._isMounted = true;
     this.cancelPrefetchTimeout();
 
-    if (!this._subscription) {
-      console.warn("withObservables - component mounted but no subscription present. Slow component (timed out) or something weird happened! Re-subscribing");
+    if (!this._unsubscribe) {
+      // eslint-disable-next-line no-console
+      console.warn("[withObservables] Component mounted but no subscription present. Slow component (timed out) or a bug! Re-subscribing...");
       var newTriggeringProps = getTriggeringProps(this.props, this.triggerProps);
       this.subscribe(this.props, newTriggeringProps);
     }
@@ -214,19 +179,63 @@ function (_Component) {
       triggeredFromProps
     });
     this.subscribeWithoutSettingState(props);
-  };
+  } // NOTE: This is a hand-coded equivalent of Rx combineLatestObject
+  ;
 
   _proto.subscribeWithoutSettingState = function subscribeWithoutSettingState(props) {
     var _this2 = this;
 
     this.unsubscribe();
-    this._subscription = this.getNewProps(props).subscribe(function (values) {
-      return _this2.withObservablesOnChange(values);
-    }, function (error) {
-      // we need to explicitly log errors from the new observables, or they will get lost
-      // TODO: It can be difficult to trace back the component in which this error originates. We should maybe propagate this as an error of the component? Or at least show in the error a reference to the component, or the original `getProps` function?
-      console.error("Error in Rx composition in withObservables()", error);
+    var observablesObject = this.getObservables(props);
+    var subscriptions = [];
+    var isUnsubscribed = false;
+
+    var unsubscribe = function unsubscribe() {
+      isUnsubscribed = true;
+      subscriptions.forEach(function (_unsubscribe) {
+        return _unsubscribe();
+      });
+      subscriptions = [];
+    };
+
+    var values = {};
+    var valueCount = 0;
+    var keys = Object.keys(observablesObject);
+    var keyCount = keys.length;
+    keys.forEach(function (key) {
+      if (isUnsubscribed) {
+        return;
+      } // $FlowFixMe
+
+
+      var subscribable = observablesObject[key];
+      subscriptions.push(subscribe( // $FlowFixMe
+      subscribable, function (value) {
+        // console.log(`new value for ${key}, all keys: ${keys}`)
+        // Check if we have values for all observables; if yes - we can render; otherwise - only set value
+        var isFirstEmission = !hasOwn.call(values, key);
+
+        if (isFirstEmission) {
+          valueCount += 1;
+        }
+
+        values[key] = value;
+        var hasAllValues = valueCount === keyCount;
+
+        if (hasAllValues && !isUnsubscribed) {
+          // console.log('okay, all values')
+          _this2.withObservablesOnChange(values);
+        }
+      }, function (error) {
+        // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
+        unsubscribe();
+
+        _this2.withObservablesOnError(error);
+      }, function () {// TODO: Should we do anything on completion?
+        // console.log(`completed for ${key}`)
+      }));
     });
+    this._unsubscribe = unsubscribe;
   } // DO NOT rename (we want on call stack as debugging help)
   ;
 
@@ -243,10 +252,24 @@ function (_Component) {
       this.state.values = values;
       this.state.isFetching = false;
     }
+  } // DO NOT rename (we want on call stack as debugging help)
+  ;
+
+  _proto.withObservablesOnError = function withObservablesOnError(error) {
+    // console.error(`[withObservables] Error in Rx composition`, error)
+    if (this._exitedConstructor) {
+      this.setState({
+        error,
+        isFetching: false
+      });
+    } else {
+      this.state.error = error;
+      this.state.isFetching = false;
+    }
   };
 
   _proto.unsubscribe = function unsubscribe() {
-    this._subscription && this._subscription.unsubscribe();
+    this._unsubscribe && this._unsubscribe();
     this.cancelPrefetchTimeout();
   };
 
@@ -267,8 +290,18 @@ function (_Component) {
   _proto.render = function render() {
     var _this$state = this.state,
         isFetching = _this$state.isFetching,
-        values = _this$state.values;
-    return isFetching ? null : createElement(this.BaseComponent, Object.assign({}, this.props, values));
+        values = _this$state.values,
+        error = _this$state.error;
+
+    if (isFetching) {
+      return null;
+    } else if (error) {
+      // rethrow error found in Rx composition as to unify withObservables errors with other React errors
+      // the responsibility for handling errors is on the user (by using an Error Boundary)
+      throw error;
+    } else {
+      return createElement(this.BaseComponent, Object.assign({}, this.props, values));
+    }
   };
 
   return WithObservablesComponent;
@@ -288,15 +321,16 @@ function (_Component) {
 // If you only want to subscribe to Observables once (the Observables don't depend on outer props),
 // pass `null` to `triggerProps`.
 //
+// Errors are re-thrown in render(). Use React Error Boundary to catch them.
+//
 // Example use:
-//   withObservablesSynchronized(['task'], ({ task }) => ({
+//   withObservables(['task'], ({ task }) => ({
 //     task: task,
 //     comments: task.comments.observe()
 //   }))
 
 
-var withObservablesSynchronized = function withObservablesSynchronized(triggerProps, getObservables) {
-  var getNewProps = makeGetNewProps(getObservables);
+var withObservables = function withObservables(triggerProps, getObservables) {
   return function (BaseComponent) {
     var ConcreteWithObservablesComponent =
     /*#__PURE__*/
@@ -304,7 +338,7 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
       _inheritsLoose(ConcreteWithObservablesComponent, _WithObservablesCompo);
 
       function ConcreteWithObservablesComponent(props) {
-        return _WithObservablesCompo.call(this, props, BaseComponent, getNewProps, triggerProps) || this;
+        return _WithObservablesCompo.call(this, props, BaseComponent, getObservables, triggerProps) || this;
       }
 
       return ConcreteWithObservablesComponent;
@@ -314,4 +348,4 @@ var withObservablesSynchronized = function withObservablesSynchronized(triggerPr
   };
 };
 
-export default withObservablesSynchronized;
+export default withObservables;
