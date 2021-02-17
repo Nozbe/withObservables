@@ -207,6 +207,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
       subscriptions.push(
         subscribe(
+          // $FlowFixMe
           observablesObject[key],
           value => {
             // console.log(`new value for ${key}, all keys: ${keys}`)
