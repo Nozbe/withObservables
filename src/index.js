@@ -1,5 +1,4 @@
 // @flow
-/* eslint-disable no-console */
 /* eslint-disable react/sort-comp */
 
 import type { Observable } from 'rxjs'
@@ -23,12 +22,14 @@ type WithObservables<Props, ObservableProps> = HOC<
   Props,
 >
 
+type Unsubscribe = () => void
+
 function subscribe(
   value: any,
   onNext: any => void,
   onError: Error => void,
   onComplete: () => void,
-): () => void {
+): Unsubscribe {
   // TODO: If this approach works, add markers to Watermelon to indicate Model, Query cleanly
   if (value.experimentalSubscribe && value._raw) {
     // HACK: This is a Watermelon Model
@@ -51,10 +52,10 @@ function subscribe(
     return () => subscription.unsubscribe()
   }
 
-  console.error(`Value passed to withObservables doesn't appear to be observable:`)
-  console.error(value)
+  // eslint-disable-next-line no-console
+  console.error(`[withObservable] Value passed to withObservables doesn't appear to be observable:`, value)
   throw new Error(
-    `Value passed to withObservables doesn't appear to be observable. See console for details`,
+    `[withObservable] Value passed to withObservables doesn't appear to be observable. See console for details`,
   )
 }
 
@@ -102,7 +103,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   getObservables: PropsInput => Observable<Object>
 
-  _unsubscribe: ?() => void = null
+  _unsubscribe: ?Unsubscribe = null
 
   _isMounted = false
 
@@ -140,6 +141,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     scheduleForCleanup(() => {
       if (!this._prefetchTimeoutCanceled) {
+        // eslint-disable-next-line no-console
         console.warn(`[withObservables] Unsubscribing from source. Leaky component!`)
         this.unsubscribe()
       }
@@ -153,6 +155,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this.cancelPrefetchTimeout()
 
     if (!this._unsubscribe) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[withObservables] Component mounted but no subscription present. Slow component (timed out) or a bug! Re-subscribing...`,
       )
@@ -185,30 +188,33 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   // NOTE: This is a hand-coded equivalent of Rx combineLatestObject
   subscribeWithoutSettingState(props: PropsInput): void {
     this.unsubscribe()
-    // console.log('subscribe')
 
     const observablesObject = this.getObservables(props)
 
-    const subscriptions = []
+    let subscriptions = []
     let isUnsubscribed = false
     const unsubscribe = () => {
       isUnsubscribed = true
-      subscriptions.forEach(sub => sub())
+      subscriptions.forEach(_unsubscribe => _unsubscribe())
+      subscriptions = []
     }
 
     const values = {}
     let valueCount = 0
 
     const keys = Object.keys(observablesObject)
+    const keyCount = keys.length
     keys.forEach(key => {
       if (isUnsubscribed) {
         return
       }
 
+      // $FlowFixMe
+      const subscribable = observablesObject[key]
       subscriptions.push(
         subscribe(
           // $FlowFixMe
-          observablesObject[key],
+          subscribable,
           value => {
             // console.log(`new value for ${key}, all keys: ${keys}`)
             // Check if we have values for all observables; if yes - we can render; otherwise - only set value
@@ -219,7 +225,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
             values[key] = value
 
-            const hasAllValues = valueCount === keys.length
+            const hasAllValues = valueCount === keyCount
             if (hasAllValues && !isUnsubscribed) {
               // console.log('okay, all values')
               this.withObservablesOnChange((values: any))
@@ -231,7 +237,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
             this.withObservablesOnError(error)
           },
           () => {
-            // Completion of an observable unsubscribed from all observables
+            // TODO: Should we do anything on completion?
             // console.log(`completed for ${key}`)
           },
         ),
@@ -243,7 +249,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   // DO NOT rename (we want on call stack as debugging help)
   withObservablesOnChange(values: AddedValues): void {
-    // console.log(values)
     if (this._exitedConstructor) {
       this.setState({
         values,
@@ -270,9 +275,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
       this.state.error = error
       this.state.isFetching = false
     }
-    // TODO: Unsubscribe proactively to lessen GC pressure
-    // since we know for sure we won't be able to use the Observable again
-    // this.unsubscribe()
   }
 
   unsubscribe(): void {
