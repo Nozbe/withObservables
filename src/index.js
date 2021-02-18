@@ -1,13 +1,10 @@
 // @flow
-/* eslint-disable no-console */
 /* eslint-disable react/sort-comp */
 
-import type { Observable, Subscription } from 'rxjs'
+import type { Observable } from 'rxjs'
 import { Component, createElement } from 'react'
 import hoistNonReactStatic from 'hoist-non-react-statics'
 
-import combineLatestObject from './combineLatestObject'
-import mapObject from './mapObject'
 import scheduleForCleanup from './garbageCollector'
 
 type UnaryFn<A, R> = (a: A) => R
@@ -20,13 +17,47 @@ type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertibl
 type TriggerProps<A> = $Keys<A>[] | null
 type GetObservables<A, B> = (props: A) => B
 
-type WithObservablesSynchronized<Props, ObservableProps> = HOC<
+type WithObservables<Props, ObservableProps> = HOC<
   { ...$Exact<Props>, ...$ObjMap<ObservableProps, ExtractTypeFromObservable> },
   Props,
 >
 
-const toObservable = (value: any): Observable<any> =>
-  typeof value.observe === 'function' ? value.observe() : value
+type Unsubscribe = () => void
+
+function subscribe(
+  value: any,
+  onNext: any => void,
+  onError: Error => void,
+  onComplete: () => void,
+): Unsubscribe {
+  // TODO: If this approach works, add markers to Watermelon to indicate Model, Query cleanly
+  if (value.experimentalSubscribe && value._raw) {
+    // HACK: This is a Watermelon Model
+    onNext(value)
+    return value.experimentalSubscribe(isDeleted => {
+      if (isDeleted) {
+        onComplete()
+      } else {
+        onNext(value)
+      }
+    })
+  } else if (value.experimentalSubscribe && value._rawDescription) {
+    // HACK: This is a Watermelon Query
+    return value.experimentalSubscribe(onNext)
+  } else if (typeof value.observe === 'function') {
+    const subscription = value.observe().subscribe(onNext, onError, onComplete)
+    return () => subscription.unsubscribe()
+  } else if (typeof value.subscribe === 'function') {
+    const subscription = value.subscribe(onNext, onError, onComplete)
+    return () => subscription.unsubscribe()
+  }
+
+  // eslint-disable-next-line no-console
+  console.error(`[withObservable] Value passed to withObservables doesn't appear to be observable:`, value)
+  throw new Error(
+    `[withObservable] Value passed to withObservables doesn't appear to be observable. See console for details`,
+  )
+}
 
 function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
   if (left.length !== right.length) {
@@ -42,17 +73,6 @@ function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
   return true
 }
 
-const makeGetNewProps: <A: {}, B: {}>(
-  GetObservables<A, B>,
-) => A => Observable<Object> = (getObservables: $FlowFixMe) =>
-  // Note: named function for easier debugging
-  function withObservablesGetNewProps(props: {}): Observable<Object> {
-    // $FlowFixMe
-    const rawObservables = getObservables(props)
-    const observables = mapObject(toObservable, rawObservables)
-    return combineLatestObject(observables)
-  }
-
 function getTriggeringProps<PropsInput: {}>(
   props: PropsInput,
   propNames: TriggerProps<PropsInput>,
@@ -63,6 +83,8 @@ function getTriggeringProps<PropsInput: {}>(
 
   return propNames.map(name => props[name])
 }
+
+const hasOwn = Object.prototype.hasOwnProperty
 
 // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
@@ -79,9 +101,9 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   triggerProps: TriggerProps<PropsInput>
 
-  getNewProps: PropsInput => Observable<Object>
+  getObservables: PropsInput => Observable<Object>
 
-  _subscription: ?Subscription = null
+  _unsubscribe: ?Unsubscribe = null
 
   _isMounted = false
 
@@ -92,13 +114,13 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   constructor(
     props,
     BaseComponent: React$ComponentType<Object>,
-    getNewProps: PropsInput => Observable<Object>,
+    getObservables: GetObservables<PropsInput, Object>,
     triggerProps: TriggerProps<PropsInput>,
   ): void {
     super(props)
     this.BaseComponent = BaseComponent
     this.triggerProps = triggerProps
-    this.getNewProps = getNewProps
+    this.getObservables = getObservables
     this.state = {
       isFetching: true,
       values: {},
@@ -119,6 +141,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     scheduleForCleanup(() => {
       if (!this._prefetchTimeoutCanceled) {
+        // eslint-disable-next-line no-console
         console.warn(`[withObservables] Unsubscribing from source. Leaky component!`)
         this.unsubscribe()
       }
@@ -131,7 +154,8 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this._isMounted = true
     this.cancelPrefetchTimeout()
 
-    if (!this._subscription) {
+    if (!this._unsubscribe) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[withObservables] Component mounted but no subscription present. Slow component (timed out) or a bug! Re-subscribing...`,
       )
@@ -161,12 +185,66 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this.subscribeWithoutSettingState(props)
   }
 
+  // NOTE: This is a hand-coded equivalent of Rx combineLatestObject
   subscribeWithoutSettingState(props: PropsInput): void {
     this.unsubscribe()
-    this._subscription = this.getNewProps(props).subscribe(
-      values => this.withObservablesOnChange(values),
-      error => this.withObservablesOnError(error),
-    )
+
+    const observablesObject = this.getObservables(props)
+
+    let subscriptions = []
+    let isUnsubscribed = false
+    const unsubscribe = () => {
+      isUnsubscribed = true
+      subscriptions.forEach(_unsubscribe => _unsubscribe())
+      subscriptions = []
+    }
+
+    const values = {}
+    let valueCount = 0
+
+    const keys = Object.keys(observablesObject)
+    const keyCount = keys.length
+    keys.forEach(key => {
+      if (isUnsubscribed) {
+        return
+      }
+
+      // $FlowFixMe
+      const subscribable = observablesObject[key]
+      subscriptions.push(
+        subscribe(
+          // $FlowFixMe
+          subscribable,
+          value => {
+            // console.log(`new value for ${key}, all keys: ${keys}`)
+            // Check if we have values for all observables; if yes - we can render; otherwise - only set value
+            const isFirstEmission = !hasOwn.call(values, key)
+            if (isFirstEmission) {
+              valueCount += 1
+            }
+
+            values[key] = value
+
+            const hasAllValues = valueCount === keyCount
+            if (hasAllValues && !isUnsubscribed) {
+              // console.log('okay, all values')
+              this.withObservablesOnChange((values: any))
+            }
+          },
+          error => {
+            // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
+            unsubscribe()
+            this.withObservablesOnError(error)
+          },
+          () => {
+            // TODO: Should we do anything on completion?
+            // console.log(`completed for ${key}`)
+          },
+        ),
+      )
+    })
+
+    this._unsubscribe = unsubscribe
   }
 
   // DO NOT rename (we want on call stack as debugging help)
@@ -197,13 +275,10 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
       this.state.error = error
       this.state.isFetching = false
     }
-    // TODO: Unsubscribe proactively to lessen GC pressure
-    // since we know for sure we won't be able to use the Observable again
-    // this.unsubscribe()
   }
 
   unsubscribe(): void {
-    this._subscription && this._subscription.unsubscribe()
+    this._unsubscribe && this._unsubscribe()
     this.cancelPrefetchTimeout()
   }
 
@@ -255,17 +330,15 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 // Errors are re-thrown in render(). Use React Error Boundary to catch them.
 //
 // Example use:
-//   withObservablesSynchronized(['task'], ({ task }) => ({
+//   withObservables(['task'], ({ task }) => ({
 //     task: task,
 //     comments: task.comments.observe()
 //   }))
 
-const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
+const withObservables = <PropsInput: {}, ObservableProps: {}>(
   triggerProps: TriggerProps<PropsInput>,
   getObservables: GetObservables<PropsInput, ObservableProps>,
-): WithObservablesSynchronized<PropsInput, ObservableProps> => {
-  const getNewProps = makeGetNewProps(getObservables)
-
+): WithObservables<PropsInput, ObservableProps> => {
   type AddedValues = Object
 
   return BaseComponent => {
@@ -274,7 +347,7 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
       PropsInput,
     > {
       constructor(props): void {
-        super(props, BaseComponent, getNewProps, triggerProps)
+        super(props, BaseComponent, getObservables, triggerProps)
       }
     }
 
@@ -282,4 +355,4 @@ const withObservablesSynchronized = <PropsInput: {}, ObservableProps: {}>(
   }
 }
 
-export default withObservablesSynchronized
+export default withObservables
