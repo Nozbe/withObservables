@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Observable errors are now re-thrown in render, so that you can catch them with an Error Boundary
+
 ## 1.0.8 - 2020-12-17
 
 - Fix Flow issues when running Flow 0.140.0
