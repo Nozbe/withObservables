@@ -4,7 +4,17 @@ import hoistNonReactStatic from 'hoist-non-react-statics';
 function _inheritsLoose(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
   subClass.prototype.constructor = subClass;
-  subClass.__proto__ = superClass;
+
+  _setPrototypeOf(subClass, superClass);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
 }
 
 var cleanUpBatchingInterval = 250; // ms
@@ -103,9 +113,7 @@ function getTriggeringProps(props, propNames) {
 var hasOwn = Object.prototype.hasOwnProperty; // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
 
-var WithObservablesComponent =
-/*#__PURE__*/
-function (_Component) {
+var WithObservablesComponent = /*#__PURE__*/function (_Component) {
   _inheritsLoose(WithObservablesComponent, _Component);
 
   function WithObservablesComponent(props, BaseComponent, getObservables, triggerProps) {
@@ -332,9 +340,7 @@ function (_Component) {
 
 var withObservables = function withObservables(triggerProps, getObservables) {
   return function (BaseComponent) {
-    var ConcreteWithObservablesComponent =
-    /*#__PURE__*/
-    function (_WithObservablesCompo) {
+    var ConcreteWithObservablesComponent = /*#__PURE__*/function (_WithObservablesCompo) {
       _inheritsLoose(ConcreteWithObservablesComponent, _WithObservablesCompo);
 
       function ConcreteWithObservablesComponent(props) {
