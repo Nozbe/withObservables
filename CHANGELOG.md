@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 1.2.0 - 2021-03-25
 
 - Observable errors are now re-thrown in render, so that you can catch them with an Error Boundary
 - withObservable no longer has a dependency on RxJS package, which makes it leaner, more performant
