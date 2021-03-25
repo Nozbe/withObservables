@@ -54,9 +54,9 @@ function scheduleForCleanup(fn) {
 }
 
 function subscribe(value, onNext, onError, onComplete) {
-  // TODO: If this approach works, add markers to Watermelon to indicate Model, Query cleanly
-  if (value.experimentalSubscribe && value._raw) {
-    // HACK: This is a Watermelon Model
+  var wmelonTag = value && value.constructor && value.constructor._wmelonTag;
+
+  if (wmelonTag === 'model') {
     onNext(value);
     return value.experimentalSubscribe(function (isDeleted) {
       if (isDeleted) {
@@ -65,8 +65,7 @@ function subscribe(value, onNext, onError, onComplete) {
         onNext(value);
       }
     });
-  } else if (value.experimentalSubscribe && value._rawDescription) {
-    // HACK: This is a Watermelon Query
+  } else if (wmelonTag === 'query') {
     return value.experimentalSubscribe(onNext);
   } else if (typeof value.observe === 'function') {
     var subscription = value.observe().subscribe(onNext, onError, onComplete);

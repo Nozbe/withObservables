@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- use WatermelonDB 0.22 api to differentiate between Model and Query objects
+
 ## 1.2.0 - 2021-03-25
 
 - Observable errors are now re-thrown in render, so that you can catch them with an Error Boundary
