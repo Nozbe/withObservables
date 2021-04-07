@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.3.0 - 2021-04-07
+
 - use WatermelonDB 0.22 api to differentiate between Model and Query objects
+- fix warnings when using React 17
 
 ## 1.2.0 - 2021-03-25
 
