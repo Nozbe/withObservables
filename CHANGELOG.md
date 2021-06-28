@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.4.0 - 2021-06-28
+
+- add helpful Component.displayName to make it easier to distinguish between withObservables in React DevTools
+
 ## 1.3.0 - 2021-04-07
 
 - use WatermelonDB 0.22 api to differentiate between Model and Query objects
