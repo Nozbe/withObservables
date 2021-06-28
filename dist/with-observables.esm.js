@@ -242,6 +242,13 @@ var WithObservablesComponent = /*#__PURE__*/function (_Component) {
         // console.log(`completed for ${key}`)
       }));
     });
+
+    if (process.env.NODE_ENV !== 'production') {
+      var renderedTriggerProps = this.triggerProps ? this.triggerProps.join(',') : 'null';
+      var renderedKeys = keys.join(', ');
+      this.constructor.displayName = "withObservables[".concat(renderedTriggerProps, "] { ").concat(renderedKeys, " }");
+    }
+
     this._unsubscribe = unsubscribe;
   } // DO NOT rename (we want on call stack as debugging help)
   ;
@@ -348,6 +355,11 @@ var withObservables = function withObservables(triggerProps, getObservables) {
 
       return ConcreteWithObservablesComponent;
     }(WithObservablesComponent);
+
+    if (process.env.NODE_ENV !== 'production') {
+      var renderedTriggerProps = triggerProps ? triggerProps.join(',') : 'null';
+      ConcreteWithObservablesComponent.displayName = "withObservables[".concat(renderedTriggerProps, "]");
+    }
 
     return hoistNonReactStatic(ConcreteWithObservablesComponent, BaseComponent);
   };

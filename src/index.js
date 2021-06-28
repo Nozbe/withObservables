@@ -242,6 +242,12 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
       )
     })
 
+    if (process.env.NODE_ENV !== 'production') {
+      const renderedTriggerProps = this.triggerProps ? this.triggerProps.join(',') : 'null'
+      const renderedKeys = keys.join(', ')
+      this.constructor.displayName = `withObservables[${renderedTriggerProps}] { ${renderedKeys} }`
+    }
+
     this._unsubscribe = unsubscribe
   }
 
@@ -347,6 +353,10 @@ const withObservables = <PropsInput: {}, ObservableProps: {}>(
       constructor(props): void {
         super(props, BaseComponent, getObservables, triggerProps)
       }
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      const renderedTriggerProps = triggerProps ? triggerProps.join(',') : 'null'
+      ConcreteWithObservablesComponent.displayName = `withObservables[${renderedTriggerProps}]`
     }
 
     return hoistNonReactStatic(ConcreteWithObservablesComponent, BaseComponent)
