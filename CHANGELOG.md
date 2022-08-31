@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.4.1 - 2022-08-31
+
+- Fiw Flow issues when running Flow 0.185.2
+
 ## 1.4.0 - 2021-06-28
 
 - add helpful Component.displayName to make it easier to distinguish between withObservables in React DevTools
