@@ -10,7 +10,9 @@ import scheduleForCleanup from './garbageCollector'
 type UnaryFn<A, R> = (a: A) => R
 type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>
 
-type ObservableConvertible<T> = { +observe: () => Observable<T> }
+interface ObservableConvertible<T> {
+  observe(): Observable<T>,
+}
 
 type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertible<T>) => T
 
@@ -82,7 +84,9 @@ function getTriggeringProps<PropsInput: {}>(
   return propNames.map(name => props[name])
 }
 
-const hasOwn = Object.prototype.hasOwnProperty
+const hasOwn = (obj, key) => {
+  return Object.prototype.hasOwnProperty.call(obj, key)
+}
 
 // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
@@ -197,7 +201,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
       subscriptions = []
     }
 
-    const values = {}
+    const values: { [string]: any } = {}
     let valueCount = 0
 
     const keys = Object.keys(observablesObject)
@@ -216,7 +220,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
           value => {
             // console.log(`new value for ${key}, all keys: ${keys}`)
             // Check if we have values for all observables; if yes - we can render; otherwise - only set value
-            const isFirstEmission = !hasOwn.call(values, key)
+            const isFirstEmission = !hasOwn(values, key)
             if (isFirstEmission) {
               valueCount += 1
             }
