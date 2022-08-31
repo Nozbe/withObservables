@@ -113,8 +113,11 @@ function getTriggeringProps(props, propNames) {
   });
 }
 
-var hasOwn = Object.prototype.hasOwnProperty; // TODO: This is probably not going to be 100% safe to use under React async mode
+var hasOwn = function hasOwn(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}; // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
+
 
 var WithObservablesComponent = /*#__PURE__*/function (_Component) {
   _inheritsLoose(WithObservablesComponent, _Component);
@@ -224,7 +227,7 @@ var WithObservablesComponent = /*#__PURE__*/function (_Component) {
       subscribable, function (value) {
         // console.log(`new value for ${key}, all keys: ${keys}`)
         // Check if we have values for all observables; if yes - we can render; otherwise - only set value
-        var isFirstEmission = !hasOwn.call(values, key);
+        var isFirstEmission = !hasOwn(values, key);
 
         if (isFirstEmission) {
           valueCount += 1;
