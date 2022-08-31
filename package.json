@@ -1,6 +1,6 @@
 {
   "name": "@nozbe/with-observables",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "main": "dist/with-observables.cjs.js",
   "module": "dist/with-observables.esm.js",
   "scripts": {
