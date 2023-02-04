@@ -8,7 +8,7 @@
     "flow": "flow check --color always",
     "eslint": "eslint ./src -c ./.eslintrc.js --cache --cache-location ./.cache/.eslintcache",
     "test": "jest --config=./jest.config.js",
-    "test:typescript": "cd __tests__/typescript; yarn; yarn test",
+    "test:typescript": "cd __tests__/typescript && yarn && yarn test",
     "ci:check": "concurrently -n test,eslint,flow,ts 'yarn test' 'yarn eslint' 'yarn flow' 'yarn test:typescript' --kill-others-on-fail",
     "ci": "yarn ci:check"
   },
@@ -74,7 +74,6 @@
     "@babel/plugin-transform-spread": "^7.20.7",
     "@babel/plugin-transform-template-literals": "^7.18.9",
     "@babel/runtime": "^7.20.13",
-    "@nozbe/watermelondb": "^0.16.2",
     "@types/hoist-non-react-statics": "^3.3.1",
     "@types/react": "^16.9.23",
     "@typescript-eslint/eslint-plugin": "^5.49.0",

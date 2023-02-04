@@ -1,7 +1,13 @@
 import * as React from "react";
 import withObservables, { ExtractedObservables } from "@nozbe/with-observables";
-import { Model, Database } from "@nozbe/watermelondb";
+import { Model, Database, tableName } from "@nozbe/watermelondb";
 import {expectType} from 'tsd-check';
+
+const TableName_BLOGS = tableName<Blog>('blogs')
+
+class Blog extends Model {
+  static table = TableName_BLOGS
+}
 
 const TABLE_NAME = "table";
 
@@ -11,10 +17,10 @@ const getObservables = ({
   database,
 }: {
   id: string,
-  model: Model,
+  model: Blog,
   database: Database,
 }) => {
-  const model$ = database.collections.get(TABLE_NAME).findAndObserve(id);
+  const model$ = database.collections.get(TableName_BLOGS).findAndObserve(id);
   return {
     model: model,
     keyChanged: model,
@@ -52,7 +58,7 @@ const database!: Database
 const element = <WrappedChild
   passThrough="abc"
   id="123"
-  model={new Model()}
+  model={null as unknown as Blog}
   database={database}
 />;
 

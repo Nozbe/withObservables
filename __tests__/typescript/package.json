@@ -7,7 +7,8 @@
     "test": "tsc --noEmit"
   },
   "devDependencies": {
+    "@nozbe/watermelondb": "^0.25",
     "tsd-check": "^0.6.0",
-    "typescript": "^3.8.3"
+    "typescript": "^4.5.0"
   }
 }
