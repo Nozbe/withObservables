@@ -1,6 +1,7 @@
 [ignore]
 <PROJECT_ROOT>/.cache
 <PROJECT_ROOT>/__tests__
+.*/node_modules/**/resolve/test/resolver/malformed_package_json/**
 
 [include]
 
@@ -8,11 +9,9 @@
 flow-typed/
 
 [options]
-esproposal.optional_chaining=enable
-; strip_root=true
+module.file_ext=.js
 emoji=true
 module.ignore_non_literal_requires=true
-module.file_ext=.js
 
 # fixes Flow on ARM
 sharedmemory.heap_size=4000000000

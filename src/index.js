@@ -84,7 +84,8 @@ function getTriggeringProps<PropsInput: {}>(
   return propNames.map(name => props[name])
 }
 
-const hasOwn = (obj, key) => {
+const hasOwn = (obj: Object, key: string): boolean => {
+  // $FlowFixMe
   return Object.prototype.hasOwnProperty.call(obj, key)
 }
 
@@ -114,7 +115,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   _exitedConstructor = false
 
   constructor(
-    props,
+    props: PropsInput,
     BaseComponent: React$ComponentType<Object>,
     getObservables: GetObservables<PropsInput, Object>,
     triggerProps: TriggerProps<PropsInput>,
@@ -193,7 +194,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     const observablesObject = this.getObservables(props)
 
-    let subscriptions = []
+    let subscriptions: Unsubscribe[] = []
     let isUnsubscribed = false
     const unsubscribe = () => {
       isUnsubscribed = true
@@ -294,7 +295,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     this._prefetchTimeoutCanceled = true
   }
 
-  shouldComponentUpdate(nextProps, nextState): boolean {
+  shouldComponentUpdate(nextProps: $FlowFixMe, nextState: $FlowFixMe): boolean {
     // If one of the triggering props change but we don't yet have first values from the new
     // observable, *don't* render anything!
     return !nextState.isFetching
@@ -354,7 +355,7 @@ const withObservables = <PropsInput: {}, ObservableProps: {}>(
       AddedValues,
       PropsInput,
     > {
-      constructor(props): void {
+      constructor(props: PropsInput): void {
         super(props, BaseComponent, getObservables, triggerProps)
       }
     }
