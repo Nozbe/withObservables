@@ -7,7 +7,7 @@ let pendingCleanupActions: Array<() => void> = []
 let scheduledCleanUpScheduler: ?TimeoutID = null
 
 function cleanUpWithObservablesActions(actions: Array<() => void>): void {
-  actions.forEach(action => action())
+  actions.forEach((action) => action())
 }
 
 function scheduleCleanUp(): void {

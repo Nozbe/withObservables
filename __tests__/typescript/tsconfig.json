@@ -9,7 +9,5 @@
     "jsx": "preserve",
     "target": "ES5"
   },
-  "include": [
-    "../../"
-  ]
+  "include": ["../../"]
 }

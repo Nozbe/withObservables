@@ -11,7 +11,7 @@ type UnaryFn<A, R> = (a: A) => R
 type HOC<Base, Enhanced> = UnaryFn<React$ComponentType<Base>, React$ComponentType<Enhanced>>
 
 interface ObservableConvertible<T> {
-  observe(): Observable<T>,
+  observe(): Observable<T>;
 }
 
 type ExtractTypeFromObservable = <T>(value: Observable<T> | ObservableConvertible<T>) => T
@@ -28,14 +28,14 @@ type Unsubscribe = () => void
 
 function subscribe(
   value: any,
-  onNext: any => void,
-  onError: Error => void,
+  onNext: (any) => void,
+  onError: (Error) => void,
   onComplete: () => void,
 ): Unsubscribe {
   const wmelonTag = value && value.constructor && value.constructor._wmelonTag
   if (wmelonTag === 'model') {
     onNext(value)
-    return value.experimentalSubscribe(isDeleted => {
+    return value.experimentalSubscribe((isDeleted) => {
       if (isDeleted) {
         onComplete()
       } else {
@@ -53,7 +53,10 @@ function subscribe(
   }
 
   // eslint-disable-next-line no-console
-  console.error(`[withObservable] Value passed to withObservables doesn't appear to be observable:`, value)
+  console.error(
+    `[withObservable] Value passed to withObservables doesn't appear to be observable:`,
+    value,
+  )
   throw new Error(
     `[withObservable] Value passed to withObservables doesn't appear to be observable. See console for details`,
   )
@@ -81,7 +84,7 @@ function getTriggeringProps<PropsInput: {}>(
     return []
   }
 
-  return propNames.map(name => props[name])
+  return propNames.map((name) => props[name])
 }
 
 const hasOwn = (obj: Object, key: string): boolean => {
@@ -104,7 +107,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   triggerProps: TriggerProps<PropsInput>
 
-  getObservables: PropsInput => Observable<Object>
+  getObservables: (PropsInput) => Observable<Object>
 
   _unsubscribe: ?Unsubscribe = null
 
@@ -195,7 +198,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
     let isUnsubscribed = false
     const unsubscribe = () => {
       isUnsubscribed = true
-      subscriptions.forEach(_unsubscribe => _unsubscribe())
+      subscriptions.forEach((_unsubscribe) => _unsubscribe())
       subscriptions = []
     }
 
@@ -204,7 +207,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
     const keys = Object.keys(observablesObject)
     const keyCount = keys.length
-    keys.forEach(key => {
+    keys.forEach((key) => {
       if (isUnsubscribed) {
         return
       }
@@ -215,7 +218,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
         subscribe(
           // $FlowFixMe
           subscribable,
-          value => {
+          (value) => {
             // console.log(`new value for ${key}, all keys: ${keys}`)
             // Check if we have values for all observables; if yes - we can render; otherwise - only set value
             const isFirstEmission = !hasOwn(values, key)
@@ -231,7 +234,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
               this.withObservablesOnChange((values: any))
             }
           },
-          error => {
+          (error) => {
             // Error in one observable should cause all observables to be unsubscribed from - the component is, in effect, broken now
             unsubscribe()
             this.withObservablesOnError(error)
@@ -347,7 +350,7 @@ const withObservables = <PropsInput: {}, ObservableProps: {}>(
 ): WithObservables<PropsInput, ObservableProps> => {
   type AddedValues = Object
 
-  return BaseComponent => {
+  return (BaseComponent) => {
     class ConcreteWithObservablesComponent extends WithObservablesComponent<
       AddedValues,
       PropsInput,
