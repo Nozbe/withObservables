@@ -95,6 +95,7 @@ function getTriggeringProps(props, propNames) {
   });
 }
 var hasOwn = function hasOwn(obj, key) {
+  // $FlowFixMe
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
@@ -329,4 +330,4 @@ var withObservables = function withObservables(triggerProps, getObservables) {
   };
 };
 
-export default withObservables;
+export { withObservables as default };

@@ -1,9 +1,7 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var react = require('react');
-var hoistNonReactStatic = _interopDefault(require('hoist-non-react-statics'));
+var hoistNonReactStatic = require('hoist-non-react-statics');
 
 function _inheritsLoose(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
@@ -99,6 +97,7 @@ function getTriggeringProps(props, propNames) {
   });
 }
 var hasOwn = function hasOwn(obj, key) {
+  // $FlowFixMe
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
