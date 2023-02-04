@@ -21,8 +21,19 @@ const plugins = [
 module.exports = {
   plugins,
   env: {
+    development: {
+      plugins,
+    },
+    production: {
+      plugins: [
+        ...plugins,
+        // 'minify-flip-comparisons',
+        // 'minify-guarded-expressions',
+        // 'minify-dead-code-elimination',
+      ],
+    },
     test: {
-      plugins: ['@babel/plugin-transform-modules-commonjs'],
+      plugins: [...plugins, '@babel/plugin-transform-modules-commonjs'],
     },
   },
 }
