@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 1.5.0 - 2023-02-04
+
+- Fix Flow issues when running Flow 0.199.1
+- Bump `hoist-non-react-statics` dependency
+- Remove unused `_isMounted` property
+- Internal: bump all dependencies
+
 ## 1.4.1 - 2022-08-31
 
-- Fiw Flow issues when running Flow 0.185.2
+- Fix Flow issues when running Flow 0.185.2
 
 ## 1.4.0 - 2021-06-28
 
