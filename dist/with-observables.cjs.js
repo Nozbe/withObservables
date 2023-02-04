@@ -109,7 +109,6 @@ var WithObservablesComponent = /*#__PURE__*/function (_Component) {
     var _this;
     _this = _Component.call(this, props) || this;
     _this._unsubscribe = null;
-    _this._isMounted = false;
     _this._prefetchTimeoutCanceled = false;
     _this._exitedConstructor = false;
     _this.BaseComponent = BaseComponent;
@@ -144,7 +143,6 @@ var WithObservablesComponent = /*#__PURE__*/function (_Component) {
   }
   var _proto = WithObservablesComponent.prototype;
   _proto.componentDidMount = function componentDidMount() {
-    this._isMounted = true;
     this.cancelPrefetchTimeout();
     if (!this._unsubscribe) {
       // eslint-disable-next-line no-console

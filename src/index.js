@@ -108,8 +108,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 
   _unsubscribe: ?Unsubscribe = null
 
-  _isMounted = false
-
   _prefetchTimeoutCanceled: boolean = false
 
   _exitedConstructor = false
@@ -154,7 +152,6 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
   }
 
   componentDidMount(): void {
-    this._isMounted = true
     this.cancelPrefetchTimeout()
 
     if (!this._unsubscribe) {
