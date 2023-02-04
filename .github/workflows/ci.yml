@@ -7,14 +7,14 @@ on:
 
 jobs:
   ci-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check CI
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 12
+    - name: Set Node.js version
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 16.x
     - uses: actions/cache@v2
       with:
         path: 'node_modules'
