@@ -4,8 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## 1.5.0 - 2023-02-04
-
 **NOTE**: We're considering abandoning a standalone @nozbe/withObservables package and merging it into
 @nozbe/watermelondb. If you're using withObservables **WITHOUT** WatermelonDB, please file an issue.
 
