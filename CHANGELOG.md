@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 - Update `react`, `@types/react` peer dependencies to allow React 18. This fixes issues by NPMv7 users
 - Fix Flow issues when running Flow 0.199.1
+- Fix Flow issues when in exact_by_default mode
 - Bump `hoist-non-react-statics` dependency
 - Mark `@types/hoist-non-react-statics` and `@types/react` peer dependencies as optional (for non-TS users)
 - Remove unused `_isMounted` property

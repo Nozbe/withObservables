@@ -76,7 +76,7 @@ function identicalArrays<T, V: T[]>(left: V, right: V): boolean {
   return true
 }
 
-function getTriggeringProps<PropsInput: {}>(
+function getTriggeringProps<PropsInput: { ... }>(
   props: PropsInput,
   propNames: TriggerProps<PropsInput>,
 ): any[] {
@@ -94,7 +94,7 @@ const hasOwn = (obj: Object, key: string): boolean => {
 
 // TODO: This is probably not going to be 100% safe to use under React async mode
 // Do more research
-class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Component<
+class WithObservablesComponent<AddedValues: any, PropsInput: { ... }> extends Component<
   *,
   {
     isFetching: boolean,
@@ -344,7 +344,7 @@ class WithObservablesComponent<AddedValues: any, PropsInput: {}> extends Compone
 //     comments: task.comments.observe()
 //   }))
 
-const withObservables = <PropsInput: {}, ObservableProps: {}>(
+const withObservables = <PropsInput: { ... }, ObservableProps: { ... }>(
   triggerProps: TriggerProps<PropsInput>,
   getObservables: GetObservables<PropsInput, ObservableProps>,
 ): WithObservables<PropsInput, ObservableProps> => {

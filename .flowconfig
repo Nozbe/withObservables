@@ -12,6 +12,7 @@ flow-typed/
 module.file_ext=.js
 emoji=true
 module.ignore_non_literal_requires=true
+exact_by_default=true
 
 # fixes Flow on ARM
 sharedmemory.heap_size=4000000000
