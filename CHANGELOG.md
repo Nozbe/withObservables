@@ -2,10 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 1.6.0 - 2023-06-12
 
-**NOTE**: We're considering abandoning a standalone @nozbe/withObservables package and merging it into
-@nozbe/watermelondb. If you're using withObservables **WITHOUT** WatermelonDB, please file an issue.
+**NOTE**: We will be abandoning a standalone @nozbe/withObservables package and merging it into
+@nozbe/watermelondb. This might be the last release of this package.
+
+If you're using withObservables **WITHOUT** WatermelonDB, please file an issue. If there's enough demand
+for a standalone package, we'll consider maintaining it.
 
 - Update `react`, `@types/react` peer dependencies to allow React 18. This fixes issues by NPMv7 users
 - Fix Flow issues when running Flow 0.199.1
