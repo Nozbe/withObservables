@@ -14,6 +14,16 @@
 
 A [higher-order component](https://reactjs.org/docs/higher-order-components.html) for connecting RxJS [Observables](https://github.com/ReactiveX/rxjs) to React components.
 
+## ⚠️ Deprecation notice ⚠️
+
+**`@nozbe/with-observables` as a standalone package is deprecated as of August 2023.**
+
+It continues to live on as part of [WatermelonDB](https://github.com/Nozbe/WatermelonDB). If you use WatermelonDB 0.27 or later, use this import instead:
+
+```js
+`import { withObservables } from '@nozbe/watermelondb/react'`
+```
+
 ## Example
 
 (Taken from [WatermelonDB](https://github.com/Nozbe/WatermelonDB/))
